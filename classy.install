@@ -1,0 +1,84 @@
+<?php
+
+function classy_schema() {
+  // Define a class instance entity, which will be used for each class held each semester
+  $schema['classy_class_inst'] = array (
+    'description' => 'Class instance entity',
+    'fields' => array(
+      'cid' => array(
+        'description' => 'Primary key for Class instances',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'course_id' => array(
+        'description' => 'nid reference to the parent course',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE
+      ),
+      'semester_id' => array(
+        'description' => 'tid reference to the class semester',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE
+      ), 
+      'teacher_id' => array(
+        'description' => 'uid reference to the class instructor',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => FALSE
+      ),
+      'time_id' => array(
+        'description' => 'tid reference to the class time',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => FALSE
+      ),
+      'room_id' => array(
+        'description' => 'nid reference to the classroom used',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => FALSE
+      ),      
+    
+    ),
+    'primary key' => array('cid'),
+  );
+  //Define course enrollment and grade table
+  $schema['classy_class_enroll'] = array (
+    'description' => 'Class Enrollment',
+    'fields' => array(
+      'eid' => array(
+        'description' => 'Primary key for enrollment table',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'class_id' => array(
+        'description' => 'entity id reference to the parent class',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE
+      ),
+      'student_id' => array(
+        'description' => 'uid reference to the student enrolled',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE
+      ),
+      'grade' => array(
+        'description' => 'grade for student enrolled',
+        'type' => 'int',
+        'length' => '3',
+        'not null' => FALSE
+      ),      
+      
+    ),
+    'primary key' => array('eid'),
+  );  
+  return $schema;
+}
+
+
+  

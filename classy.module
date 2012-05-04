@@ -1,0 +1,14 @@
+<?php
+/**
+ * @file
+ * Code for the Classy feature.
+ */
+
+ include_once 'classy.features.inc';
+ 
+ function classy_views_api() {
+    return array(
+        'api' => '3.0-alpha1',
+        'path' => drupal_get_path('module','classy'). '/views',
+    );
+}
