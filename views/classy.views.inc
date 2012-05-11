@@ -2,7 +2,7 @@
  
 /**
  * @file
- * Views integration for the mydons custom module
+ * Views integration for the classy module
  */
  
 /**
@@ -12,7 +12,7 @@
 function classy_views_data() {
  
  $table = array(
-    'classy_class_inst' => array(  // Class instance table
+   /* 'classy_class_inst' => array(  // Class instance table
        'table' => array(
           'group' => 'Classy',      // Groupname Mydons
              'base' => array(
@@ -54,21 +54,21 @@ function classy_views_data() {
            )
         ),
         
-      ),
+      ),  */
     
-    'classy_class_enroll' => array(  // Class instance table
+    'classy_grade' => array(  // Class instance table
        'table' => array(
           'group' => 'Classy',      // Groupname Mydons
              'base' => array(
-               'field' => 'eid',  //Primary key
-               'title' => 'Class Enrollment Table',
-               'help' => 'Provides lists of students registered for a specific class'
+               'field' => 'id',  //Primary key
+               'title' => 'Student Grade Table',
+               'help' => 'Provides lists of student grades by class'
             )
         ),
-     //Description of eid
-        'eid' => array(
-           'title' => t('Enrollment ID'),
-           'help' => t('Unique identifier for enrollment record'),
+     //Description of id
+        'id' => array(
+           'title' => t('Grade ID'),
+           'help' => t('Unique identifier for grade record'),
            // is mydons_custom_id field sortable TRUE
            'field' => array(
               'click sortable' => TRUE,
@@ -92,7 +92,6 @@ function classy_views_data() {
            'filter' => array(
               'handler' => 'views_handler_filter_numeric'
            ),
- 
            'sort' => array(
               'handler' => 'views_handler_sort'
            )
@@ -111,8 +110,6 @@ function classy_views_data() {
            'sort' => array(
               'handler' => 'views_handler_sort'
            ),
-           
-          
         ),
       ),
     );

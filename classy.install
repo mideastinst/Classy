@@ -2,7 +2,8 @@
 
 function classy_schema() {
   // Define a class instance entity, which will be used for each class held each semester
-  $schema['classy_class_inst'] = array (
+  //@todo - necessary?
+  /*$schema['classy_class_inst'] = array (
     'description' => 'Class instance entity',
     'fields' => array(
       'cid' => array(
@@ -44,13 +45,12 @@ function classy_schema() {
     
     ),
     'primary key' => array('cid'),
-  );
-  //Define course enrollment and grade table
-  $schema['classy_class_enroll'] = array (
-    'description' => 'Class Enrollment',
+  );*/
+  $schema['classy_grades'] = array (
+    'description' => 'Student Grades',
     'fields' => array(
-      'eid' => array(
-        'description' => 'Primary key for enrollment table',
+      'id' => array(
+        'description' => 'Primary key for grade table',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -75,10 +75,183 @@ function classy_schema() {
       ),      
       
     ),
-    'primary key' => array('eid'),
-  );  
+    'primary key' => array('id'),
+  ); 
+  
   return $schema;
 }
+/*
+//@todo if updating the signup table
+function classy_update_7000() {
+  $ret = array();
+  $field = array(
+    'type' => 'int',
+    'size' => 'tiny',
+  );
+  db_add_field('signup_log', 'grade', $field);
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('Added Grade field to signup log table');
+}*/
+
+
+/**
+ * Implementation of hook_enable() 
+ */
+function classy_enable() {
+  // Create and populate taxonomies for Courses and Classes
+  _classy_populate_language_vocab();
+  _classy_populate_level_vocab();
+  _classy_populate_year_vocab();
+  _classy_populate_semester_vocab();
+  _classy_populate_time_vocab();
+}
+
+function  _classy_populate_language_vocab() {
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'Classy Languages',
+    'machine_name' => 'classy_language',
+  ));
+
+  $terms = array(
+    t('Arabic'),
+    t('Farsi'),
+    t('Turkish'),
+    t('Hebrew'),
+    t('Urdu'),
+    t('Pashto'),
+    t('Dari'),
+  );
+  $vocab = taxonomy_vocabulary_machine_name_load('classy_language'); 
+  classy_save_terms($terms, $vocab->vid); 
+}
+
+function  _classy_populate_level_vocab() {
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'Classy Levels',
+    'machine_name' => 'classy_level',
+  ));
+
+  $terms = array(
+    t('101'),
+    t('102'),
+    t('103'),
+    t('104'),
+    t('105'),
+    t('131'),
+    t('132'),
+    t('133'),
+    t('134'),
+    t('202'),
+    t('203'),
+    t('201'),
+    t('202'),
+    t('203'),
+    t('301'),
+    t('302'),
+    t('303'),
+    t('401'),
+    t('402'),
+    t('501'),
+    t('502'),
+  );
+  $vocab = taxonomy_vocabulary_machine_name_load('classy_level'); 
+  classy_save_terms($terms, $vocab->vid); 
+}
+
+function  _classy_populate_year_vocab() {
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'Classy Years',
+    'machine_name' => 'classy_year',
+  ));
+
+  $terms = array(
+    t('2013'),
+    t('2012'),
+    t('2011'),
+    t('2010'),
+    t('2009'),
+    t('2008'),
+    t('2007'),
+    t('2006'),
+    t('2005'),
+    t('2004'),
+    t('2003'),
+    t('2002'),
+  );
+  $vocab = taxonomy_vocabulary_machine_name_load('classy_year'); 
+  classy_save_terms($terms, $vocab->vid); 
+}
+
+function  _classy_populate_semester_vocab() {
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'Classy Semesters',
+    'machine_name' => 'classy_semester',
+  ));
+
+  $terms = array(
+    t('Fall'),
+    t('Winter'),
+    t('Spring'),
+    t('Summer I'),
+    t('Summer II'),
+  );
+  $vocab = taxonomy_vocabulary_machine_name_load('classy_semester'); 
+  classy_save_terms($terms, $vocab->vid); 
+}
+
+function  _classy_populate_time_vocab() {
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'Classy Times',
+    'machine_name' => 'classy_time',
+  ));
+
+  $terms = array(
+    t('Mon/Wed 6p - 7:50'),
+    t('Mon/Wed 8p - 9:50'),
+    t('Tue/Thu 6p - 7:50'),
+    t('Tue/Thu 8p - 9:50'),
+    t('Sat/Sun 10a - 1:30p'),
+    t('Sat/Sun 1:45p - 3'),
+  );
+  $vocab = taxonomy_vocabulary_machine_name_load('classy_time'); 
+  classy_save_terms($terms, $vocab->vid); 
+}
+
+/**
+ * Helper function to save taxonomy term structures
+ */
+function  classy_save_terms($terms, $vid, $parent_tid = '') {
+  static $weight = 0;
+  foreach ($terms as $id => $data) {
+    // we have child terms
+    if (is_array($data)) {
+      $name = $id;
+    }
+    else {
+      $name = $data;
+    }
+    $edit = array(
+      'name' => $name,
+      'description' => '',
+      'vid' => $vid,
+      'weight' => $weight,
+    );
+    if ($parent_tid) {
+      $edit['parent'] = $parent_tid;
+    }
+    $term = (object) $edit;
+    taxonomy_term_save($term);
+    $weight++;
+    
+    if (is_array($data)) {
+      $tid = $term->tid;
+      classy_save_terms($data, $vid, $tid);
+    }
+  }
+}
+
 
 
   

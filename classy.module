@@ -12,3 +12,101 @@
         'path' => drupal_get_path('module','classy'). '/views',
     );
 }
+
+
+/**
+ * Implements hook_theme_registry_alter()
+ * Want to provide theming tpls here, rather than just the theme
+ */
+function classy_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'classy');
+  $theme_registry_copy = $theme_registry;       // munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _classy_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter)
+*/
+function _classy_insert_after_first_element(&$a, $element) {
+  if(is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+/**
+ * Implementation of hook_preprocess_node();
+ * 
+ * All the additional custom node variables are assembled here.
+ */
+function classy_preprocess_node(&$vars) {
+  //Add view mode theme suggestions
+  $vars['theme_hook_suggestions'][] = 'node__' . $vars['type'] . '__' . $vars['view_mode'];
+
+  //menu seems to be messed up and not adding active trail via context
+  //dpm(context_get());
+  //dpm(menu_get_active_trail());
+  
+  //global $language;
+  if (isset($vars['type'])) {
+    switch ($vars['type']) {
+	    case 'profile':
+	      unset($vars['content']['links']);
+	      unset($vars['content']['comments']);
+	      break;
+      case 'course':
+        break;      
+      case 'class':
+        dpm($vars);
+        
+        //Load related course information
+        
+        //check to see if the user has is logged in
+        if ($vars['logged_in'] == TRUE) {
+          $vars['registration'] = "totally logged in";
+          //check to see if user has available class credits to spend - this is civi integration for payment
+          
+        
+        } else {
+          $vars['registration'] = "dude, go log in";
+        }
+        break;
+      
+   
+	    case 'site_page':
+	      unset($vars['content']['links']);
+	      unset($vars['content']['comments']);
+        break;
+      default:
+	      break;
+    }
+  }
+}
+
+
+/**
+ * Create the class list
+ */
+ 
+ // uses drupal_write_record($table, &$record, $primary_keys = array())
+ 
+ /*    // Initializing $record array with values.
+    $record = array (
+    "uid" => $user->uid,
+    "ufname" => $form_state ["values"]["name"],
+    "ufdesc" => $form_state ["values"]["desc"],
+    "ufpath" => $path,
+    "ufstatus" => 1,
+    "ufdate" => $time,
+    );
+    // Inserting $record (data) into the database. Here $table variable contains the name of the table.
+    drupal_write_record ($table, $record);
+    // Getting the last inserted ID. (ufid) is the primary key of the table in my scenario.
+    $return = $record ['ufid'];
+    
+  */  
