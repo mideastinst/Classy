@@ -1,12 +1,133 @@
 <?php
+
 /**
  * @file
- * Code for the Classy feature.
+ * This is an example outlining how a module can be used to define a new
+ * node type.  In Drupal 7 we move most of what was once needed in this file
+ * to the classy.install file so that it can be managed efficiently.
+ *
+ * Our example node type will allow users to specify multiple "colors",
+ * a "quantity" and an "image" for their nodes; some kind of rudimentary
+ * inventory-tracking system, perhaps?
+ *
+ * In previous versions of Drupal, "teaser" and "page" were node view modes.  In
+ * Drupal 7 we can define custom view modes to let the node know how it should
+ * return it's data.  This module declares a custom view mode called
+ * "example_node_list".
+ *
+ * We no longer need an extra database table to store this content type's
+ * information.
+ *
+ * Most node types that provide fields do not require any custom code for
+ * the fields, as the fields system provides storage and access.
+ *
+ * See @link http://drupal.org/node/707832 Field API Tutorial @endlink
+ *
+ * See @link http://drupal.org/node/443536 Field API Handbook Page @endlink
+ *
+ * See @link field Field API documentation @endlink
+ *
+ * See @link field_example.install field_example.install @endlink
+ *
+ * Remember that most node types do not require any custom code, as one
+ * simply creates them using the fields UI.
  */
 
- include_once 'classy.features.inc';
- 
- function classy_views_api() {
+
+/**
+ * Implements hook_menu().
+ *
+ * We are providing a default page to illustrate the use of our custom node view
+ * mode that will live at http://example.com/?q=examples/classy
+ */
+function classy_menu() {
+  $items['examples/classy'] = array(
+    'page callback' => 'classy_page',
+    'access arguments' => array('access content'),
+    'title' => 'Classy',
+  );
+  return $items;
+}
+
+/**
+ * Custom callback that builds our content and returns it to the browser.
+ *
+ * @return
+ *   a build array
+ *
+ */
+function classy_page() {
+  $build = array();
+  $sql = 'SELECT nid FROM {node} n WHERE n.type = :type AND n.status = :status';
+  $result = db_query($sql,
+    array(
+      ':type' => 'classy',
+      ':status' => 1,
+    )
+  );
+
+  // Loop through each of our classy nodes and instruct node_view
+  // to use our custom "example_node_list" view.
+  // http://api.drupal.org/api/function/node_load/7
+  // http://api.drupal.org/api/function/node_view/7
+  foreach ($result as $row) {
+    $node = node_load($row->nid);
+    $build['node_list'][]= node_view($node, 'classy_list');
+  }
+
+  return $build;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * We need to modify the default node entity info by adding a new view mode to
+ * be used in functions like node_view() or node_build_content().
+ *
+ */
+function classy_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['classy_list'] = array(
+    'label' => t('Classy Node List'),
+    'custom settings' => TRUE,
+  );
+}
+
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function classy_field_formatter_info() {
+  return array(
+    'classy_courses' => array(
+      'label' => t('Classy Course Handle'),
+      'field types' => array('text'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ *
+ * @todo: We need to provide a formatter for the colors that a user is allowed to enter
+ * during node creation.
+ */
+/*function classy_field_formatter_view($object_type, $object, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  switch ($display['type']) {
+    case 'classy_colors':
+      foreach ($items as $delta => $item) {
+        $element[$delta]['#type'] = 'markup';
+        $color = $item['safe_value'];
+        $element[$delta]['#markup'] = theme('classy_color', array('color' => $color));
+      }
+      break;
+  }
+
+  return $element;
+}*/
+
+
+function classy_views_api() {
     return array(
         'api' => '3.0-alpha1',
         'path' => drupal_get_path('module','classy'). '/views',
@@ -110,3 +231,6 @@ function classy_preprocess_node(&$vars) {
     $return = $record ['ufid'];
     
   */  
+
+
+

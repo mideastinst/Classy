@@ -1,51 +1,432 @@
 <?php
 
-function classy_schema() {
-  // Define a class instance entity, which will be used for each class held each semester
-  //@todo - necessary?
-  /*$schema['classy_class_inst'] = array (
-    'description' => 'Class instance entity',
-    'fields' => array(
-      'cid' => array(
-        'description' => 'Primary key for Class instances',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+/**
+ * @file
+ * Install file for Node Example module.
+ *
+ * The definition of the fields for the module is here,
+ *
+ * See @link http://drupal.org/node/707832 Field API Tutorial @endlink
+ *
+ * See @link http://drupal.org/node/443536 Field API Handbook Page @endlink
+ *
+ * See @link field Field API documentation @endlink
+ *
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * @see node_type_set_defaults()
+ * @see field_info_instance()
+ * @see field_update_instance()
+ * @see field_create_field()
+ * @see field_create_instance()
+ */
+function classy_install() {
+  $t = get_t();
+
+  // Define the Course node type.
+  $course = array(
+    'type' => 'course',
+    'name' => $t('Course'),
+    'base' => 'node_content',
+    'description' => $t('Create a Course instance.'),
+    'body_label' => $t('Course Description')
+  );
+
+  // http://api.drupal.org/api/function/node_type_set_defaults/7
+  $content_type = node_type_set_defaults($course);
+  node_add_body_field($content_type);
+
+  // Save the content type
+  node_type_save($content_type);
+
+  $body_instance = field_info_instance('node', 'body', 'course');
+  $body_instance['display']['classy_list'] = array(
+    'label' => 'hidden',
+    'type' => 'text_summary_or_trimmed',
+  );
+  field_update_instance($body_instance);
+
+  // Create all the fields we are adding to our content type.
+  // http://api.drupal.org/api/function/field_create_field/7
+  foreach (_classy_course_installed_fields() as $field) {
+    field_create_field($field);
+  }
+
+  // Create all the instances for our fields.
+  // http://api.drupal.org/api/function/field_create_instance/7
+  foreach (_classy_course_installed_instances() as $instance) {
+    $instance['entity_type'] = 'node';
+    $instance['bundle'] = $course['type'];
+    field_create_instance($instance);
+  }
+  
+  //Define the Class node type
+  $class = array(
+    'type' => 'class',
+    'name' => $t('Class'),
+    'base' => 'node_content',
+    'description' => $t('Create a Class instance.'),
+    'body_label' => $t('Special Information')
+  );
+
+  $content_type = node_type_set_defaults($class);
+  node_add_body_field($content_type);
+  node_type_save($content_type);
+
+  $body_instance = field_info_instance('node', 'body', 'class');
+  $body_instance['display']['classy_list'] = array(
+    'label' => 'hidden',
+    'type' => 'text_summary_or_trimmed',
+  );
+  field_update_instance($body_instance);
+
+  foreach (_classy_class_installed_fields() as $field) {
+    field_create_field($field);
+  }
+
+  foreach (_classy_class_installed_instances() as $instance) {
+    $instance['entity_type'] = 'node';
+    $instance['bundle'] = $class['type'];
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Return a structured array defining the fields created by this content type.
+ *
+ * This is packaged in a function so it can be used in both
+ * classy_install() and classy_uninstall().
+ */
+function _classy_course_installed_fields() {
+  $t = get_t();
+  return array(
+    'classy_language_id' => array(  
+      'field_name'  => 'classy_language_id',
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => 1,
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'vocabulary' => 'classy_language',
+            'parent' => 0,
+          ),
+        ),
       ),
-      'course_id' => array(
-        'description' => 'nid reference to the parent course',
-        'type' => 'int',
-        'length' => '5',
-        'not null' => TRUE
-      ),
-      'semester_id' => array(
-        'description' => 'tid reference to the class semester',
-        'type' => 'int',
-        'length' => '5',
-        'not null' => TRUE
-      ), 
-      'teacher_id' => array(
-        'description' => 'uid reference to the class instructor',
-        'type' => 'int',
-        'length' => '5',
-        'not null' => FALSE
-      ),
-      'time_id' => array(
-        'description' => 'tid reference to the class time',
-        'type' => 'int',
-        'length' => '5',
-        'not null' => FALSE
-      ),
-      'room_id' => array(
-        'description' => 'nid reference to the classroom used',
-        'type' => 'int',
-        'length' => '5',
-        'not null' => FALSE
-      ),      
-    
     ),
-    'primary key' => array('cid'),
-  );*/
+    'classy_level_id' => array(  
+      'field_name'  => 'classy_level_id',
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => 1,
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'vocabulary' => 'classy_level',
+            'parent' => 0,
+          ),
+        ),
+      ),
+    ),
+    'classy_abbrev_id' => array(  
+      'field_name'  => 'classy_abbrev_id',
+      'cardinality' => 1,
+      'type'        => 'text',  //check references to see how to make this a tid ref
+    ),
+  );
+}
+
+/**
+ * Return a structured array defining the instances for this content type.
+ *
+ * The instance lets Drupal know which widget to use to allow the user to enter
+ * data and how to react in different view modes.  We are going to display a
+ * page that uses a custom "classy_list" view mode.  We will set a
+ * cardinality of three allowing our content type to give the user three color
+ * fields.
+ *
+ * This is provided as a function so that it can be used in both hook_install()
+ * and hook_uninstall().
+ */
+function _classy_course_installed_instances() {
+  $t = get_t();
+  return array(
+    'classy_language_id' => array(
+      'field_name'  => 'classy_language_id',
+      'label' => $t('Language'),
+      'widget'      => array(
+        'type'    => 'options_select',
+      ),
+      'display' => array(
+        'default' => array (
+          'type' => 'taxonomy_term_reference_plain',
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_language',
+        ),
+      ),
+    ),
+    'classy_level_id' => array(
+      'field_name' => 'classy_level_id',
+      'label'       => $t('Level'),
+      'widget'      => array(
+        'type'    => 'options_select',
+      ),
+      'display' => array(
+        'default' => array (
+          'type' => 'taxonomy_term_reference_plain',
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_level',
+        ),
+      ),
+    ),
+    'classy_abbrev_id' => array(
+      'field_name' => 'classy_abbrev_id',
+      'label'       => $t('Reference'),
+      'widget'      => array(
+        'type'    => 'text_textfield',
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_abbrev',
+        ),
+      ),
+    ),
+  );
+}
+
+
+/**
+ * Return a structured array defining the fields created by this content type.
+ *
+ * This is packaged in a function so it can be used in both
+ * classy_install() and classy_uninstall().
+ */
+function _classy_class_installed_fields() {
+  $t = get_t();
+  return array(
+    'classy_course_id' => array(
+      'field_name' => 'classy_course_id',
+      'cardinality' => 1,
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'node',
+        'handler_settings' => array('target_bundles' => array('course')),
+      ),
+    ),
+    'classy_year_id' => array(  
+      'field_name'  => 'classy_year_id',
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => 1,
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'vocabulary' => 'classy_year',
+            'parent' => 0,
+          ),
+        ),
+      ),
+    ),
+    'classy_semester_id' => array(  
+      'field_name'  => 'classy_semester_id',
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => 1,
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'vocabulary' => 'classy_semester',
+            'parent' => 0,
+          ),
+        ),
+      ),
+    ),
+    'classy_time_id' => array(  
+      'field_name'  => 'classy_time_id',
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => 1,
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'vocabulary' => 'classy_time',
+            'parent' => 0,
+          ),
+        ),
+      ),
+    ),
+    'classy_teacher_id' => array(  
+      'field_name'  => 'classy_teacher_id',
+      'cardinality' => 1,
+      'type'        => 'text',  //check references to see how to make this a tid ref
+    ),
+    'classy_room_id' => array(  
+      'field_name'  => 'classy_room_id',
+      'cardinality' => 1,
+      'type'        => 'text',  //check references to see how to make this a tid ref
+    ),
+  );
+}
+
+/**
+ * Return a structured array defining the instances for this content type.
+ *
+ * The instance lets Drupal know which widget to use to allow the user to enter
+ * data and how to react in different view modes.  We are going to display a
+ * page that uses a custom "classy_list" view mode.  We will set a
+ * cardinality of three allowing our content type to give the user three color
+ * fields.
+ *
+ * This is provided as a function so that it can be used in both hook_install()
+ * and hook_uninstall().
+ */
+function _classy_class_installed_instances() {
+  $t = get_t();
+  return array(
+    'classy_course_id' => array(
+      'field_name' => 'classy_course_id',
+      'entity_type' => 'node',
+      'label'       => $t('Course'),
+      'widget'      => array(
+        'type'    => 'options_select',
+      ),
+      'settings' => array(
+        'target_type' => 'node',
+        'handler_settings' => array('target_bundles' => array('course')),
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_courses',
+        ),
+      ),
+    ),
+    'classy_year_id' => array(
+      'field_name'  => 'classy_year_id',
+      'label' => $t('Year'),
+      'widget'      => array(
+        'type'    => 'options_select',
+      ),
+      'display' => array(
+        'default' => array (
+          'type' => 'taxonomy_term_reference_plain',
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_years',
+        ),
+      ),
+    ),
+    'classy_semester_id' => array(
+      'field_name' => 'classy_semester_id',
+      'label'       => $t('Semester'),
+      'widget'      => array(
+        'type'    => 'options_select',
+      ),
+      'display' => array(
+        'default' => array (
+          'type' => 'taxonomy_term_reference_plain',
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_semester',
+        ),
+      ),
+    ),
+    'classy_time_id' => array(
+      'field_name' => 'classy_time_id',
+      'label'       => $t('Time'),
+     'widget'      => array(
+        'type'    => 'options_select',
+      ),
+      'display' => array(
+        'default' => array (
+          'type' => 'taxonomy_term_reference_plain',
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_time',
+        ),
+      ),
+    ),
+    'classy_teacher_id' => array(
+      'field_name' => 'classy_teacher_id',
+      'label'       => $t('Teacher'),
+      'widget'      => array(
+        'type'    => 'text_textfield',
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_teacher',
+        ),
+      ),
+    ),
+    'classy_room_id' => array(
+      'field_name' => 'classy_room_id',
+      'label'       => $t('Room'),
+      'widget'      => array(
+        'type'    => 'text_textfield',
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_room',
+        ),
+      ),
+    ),
+  );
+  
+}
+
+
+/**
+ * Implements hook_uninstall().
+ *
+ */
+function classy_uninstall() {
+  // Gather all the example content that might have been created while this
+  // module was enabled.  Simple selects still use db_query().
+  // http://api.drupal.org/api/function/db_query/7
+  $sql = 'SELECT nid FROM {node} n WHERE n.type = :type';
+  $result = db_query($sql, array(':type' => 'course'));
+  $nids = array();
+  foreach ($result as $row) {
+    $nids[] = $row->nid;
+  }
+  $result = db_query($sql, array(':type' => 'class'));
+  foreach ($result as $row) {
+    $nids[] = $row->nid;
+  }
+  node_delete_multiple($nids);
+
+  foreach (array_keys(_classy_course_installed_fields()) as $field) {
+    field_delete_field($field);
+  }
+  $instances = field_info_instances('node', 'course');
+  foreach ($instances as $instance_name => $instance) {
+    field_delete_instance($instance);
+  }
+  node_type_delete('course');
+
+  foreach (array_keys(_classy_class_installed_fields()) as $field) {
+    field_delete_field($field);
+  }
+  $instances = field_info_instances('node', 'class');
+  foreach ($instances as $instance_name => $instance) {
+    field_delete_instance($instance);
+  }
+  node_type_delete('class');
+  
+  field_purge_batch(1000);
+}
+
+
+function classy_schema() {
+  // Define a table for storing student grades
   $schema['classy_grades'] = array (
     'description' => 'Student Grades',
     'fields' => array(
@@ -80,25 +461,13 @@ function classy_schema() {
   
   return $schema;
 }
-/*
-//@todo if updating the signup table
-function classy_update_7000() {
-  $ret = array();
-  $field = array(
-    'type' => 'int',
-    'size' => 'tiny',
-  );
-  db_add_field('signup_log', 'grade', $field);
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('Added Grade field to signup log table');
-}*/
+
 
 
 /**
  * Implementation of hook_enable() 
  */
+
 function classy_enable() {
   // Create and populate taxonomies for Courses and Classes
   _classy_populate_language_vocab();
@@ -253,5 +622,3 @@ function  classy_save_terms($terms, $vid, $parent_tid = '') {
 }
 
 
-
-  
