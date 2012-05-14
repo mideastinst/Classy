@@ -190,9 +190,11 @@ function classy_preprocess_node(&$vars) {
         
         //check to see if the user has is logged in
         if ($vars['logged_in'] == TRUE) {
-          $credits = FALSE;
+          dpm($GLOBALS['user']->roles);          
           //check to see if user has available class credits to spend - this is civi integration for payment
-          if ($credits == TRUE) {
+          //@todo - might swap this for a check against a specific permission using: 
+          //user_access('register for classes'); 
+          if (in_array('paid', $GLOBALS['user']->roles)) {
             $vars['registration'] = "go for it dude";
           } else {
             $vars['registration'] = "You have no available credits <button class='submit'>" . l(t('Add Credits'), $base_url . '/user', array ('alt'=>'Add') ) . "</button>";

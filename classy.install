@@ -92,6 +92,47 @@ function classy_install() {
     $instance['bundle'] = $class['type'];
     field_create_instance($instance);
   }
+  
+  // Create default roles
+  //student
+  $role = new stdClass();
+  $role->name = 'student';
+  $role->weight = 5;
+  user_role_save($role);
+  $student = user_role_load_by_name('student'); 
+  $student_rid = $student->rid;
+  $student_perms = array(
+    'administer blocks' => TRUE, // Grant permission
+    'access dashboard' => FALSE, // Revoke permission
+  );
+  user_role_change_permissions($student_rid, $student_perms);
+   
+  //paid student
+  $role = new stdClass();
+  $role->name = 'paid';
+  $role->weight = 6;
+  user_role_save($role);
+  $paid = user_role_load_by_name('student'); 
+  $paid_rid = $paid->rid;
+  $paid_perms = array(
+    'administer blocks' => TRUE, // Grant permission
+    'access dashboard' => FALSE, // Revoke permission
+  );
+  user_role_change_permissions($paid_rid, $paid_perms);
+    
+  //instructor
+  $role = new stdClass();
+  $role->name = 'instructor';
+  $role->weight = 7;
+  user_role_save($role);
+  $instructor = user_role_load_by_name('instructor'); 
+  $instructor_rid = $instructor->rid;
+  $instructor_perms = array(
+    'administer blocks' => TRUE, // Grant permission
+    'access dashboard' => FALSE, // Revoke permission
+  );
+  user_role_change_permissions($instructor_rid, $instructor_perms);
+  
 }
 
 /**
