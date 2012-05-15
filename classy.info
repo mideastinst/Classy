@@ -1,6 +1,8 @@
 name = Classy
 description = Stay Classy MEI.
 package = Classy
+version = 7.x-1.0
+
 files[] = classy.install
 files[] = classy.module
 core = 7.x

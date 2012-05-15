@@ -1,44 +1,7 @@
 <?php
 
 /**
- * @file
- * This is an example outlining how a module can be used to define a new
- * node type.  In Drupal 7 we move most of what was once needed in this file
- * to the classy.install file so that it can be managed efficiently.
- *
- * Our example node type will allow users to specify multiple "colors",
- * a "quantity" and an "image" for their nodes; some kind of rudimentary
- * inventory-tracking system, perhaps?
- *
- * In previous versions of Drupal, "teaser" and "page" were node view modes.  In
- * Drupal 7 we can define custom view modes to let the node know how it should
- * return it's data.  This module declares a custom view mode called
- * "example_node_list".
- *
- * We no longer need an extra database table to store this content type's
- * information.
- *
- * Most node types that provide fields do not require any custom code for
- * the fields, as the fields system provides storage and access.
- *
- * See @link http://drupal.org/node/707832 Field API Tutorial @endlink
- *
- * See @link http://drupal.org/node/443536 Field API Handbook Page @endlink
- *
- * See @link field Field API documentation @endlink
- *
- * See @link field_example.install field_example.install @endlink
- *
- * Remember that most node types do not require any custom code, as one
- * simply creates them using the fields UI.
- */
-
-
-/**
  * Implements hook_menu().
- *
- * We are providing a default page to illustrate the use of our custom node view
- * mode that will live at http://example.com/?q=examples/classy
  */
 function classy_menu() {
   $items['examples/classy'] = array(
@@ -50,7 +13,7 @@ function classy_menu() {
 }
 
 /**
- * Custom callback that builds our content and returns it to the browser.
+ * Custom callback that builds our content and returns it to the browser. @todo replace with view
  *
  * @return
  *   a build array
@@ -61,7 +24,7 @@ function classy_page() {
   $sql = 'SELECT nid FROM {node} n WHERE n.type = :type AND n.status = :status';
   $result = db_query($sql,
     array(
-      ':type' => 'classy',
+      ':type' => 'class',
       ':status' => 1,
     )
   );
@@ -137,7 +100,7 @@ function classy_views_api() {
 
 /**
  * Implements hook_theme_registry_alter()
- * Want to provide theming tpls here, rather than just the theme
+ * Want to provide theming tpls here, rather than just in the theme
  */
 function classy_theme_registry_alter(&$theme_registry) {
   $mod_path = drupal_get_path('module', 'classy');
@@ -152,7 +115,7 @@ function classy_theme_registry_alter(&$theme_registry) {
 
 /**
  * Helper function for re-ordering arrays (needed by theme_registry_alter)
-*/
+ */
 function _classy_insert_after_first_element(&$a, $element) {
   if(is_array($a)) {
     $first_element = array_shift($a);
@@ -166,6 +129,7 @@ function _classy_insert_after_first_element(&$a, $element) {
  * All the additional custom node variables are assembled here.
  */
 function classy_preprocess_node(&$vars) {
+  //dpm($GLOBALS['user']);
   //Add view mode theme suggestions
   $vars['theme_hook_suggestions'][] = 'node__' . $vars['type'] . '__' . $vars['view_mode'];
 
@@ -190,7 +154,7 @@ function classy_preprocess_node(&$vars) {
         
         //check to see if the user has is logged in
         if ($vars['logged_in'] == TRUE) {
-          dpm($GLOBALS['user']->roles);          
+          //dpm($GLOBALS['user']->roles);          
           //check to see if user has available class credits to spend - this is civi integration for payment
           //@todo - might swap this for a check against a specific permission using: 
           //user_access('register for classes'); 
@@ -239,6 +203,12 @@ function classy_preprocess_node(&$vars) {
     $return = $record ['ufid'];
     
   */  
+  
+//@todo add method for 'approving' registration
+  
+ 
+//@todo hook into signup and add check for 'paid' status
+
 
 
 

@@ -1,0 +1,454 @@
+<?php
+
+//remove
+function classy_civicrm_preprocess_node($vars) {
+
+  //use uf_match to get the contact based on drupal user
+  _classy_civicrm_initialize_api();
+  $contact = civicrm_api('UFMatch', 'get', array('version' => 3, 'uf_id' => $GLOBALS['user']->uid));
+  foreach ($contact['values'] as $drupal_user){
+    $civiuser = civicrm_api('contact' , 'get', array('version' => 3, 'id' => $drupal_user['contact_id']));
+    dpm($civiuser);
+  }
+ 
+}
+
+
+
+/** 
+ * Aggregates all calls to the CiviCRM API
+ */
+
+function _classy_civicrm_initialize_api() {
+  $civi_drupal_path = drupal_get_path('module','civicrm');
+  $civi_api_path = strstr($civi_drupal_path, 'drupal', true); 
+  $civi_api_path .= '/api/api.php';  //@todo add custom directory look, also local
+  civicrm_initialize();
+  require_once $civi_api_path;
+} 
+
+/**
+ * Implementation of hook_form_alter() 
+ */
+ 
+function classy_civicrm_form_event_node_form_alter(&$form, &$form_state, $form_id) {
+  //Add event creation to the node submission event
+  $form['#submit'][] = '_classy_civicrm_event_submit';
+}
+
+
+/**
+ * CiviCRM get contact  --nec?
+ */
+
+// @todo
+
+
+/**
+ * CiviCRM get contribution
+ */ 
+
+//Only get contributions of the correct type 
+//Civi API call, handles both create and update
+function classy_civicrm_contribution_get($params){
+  _classy_civicrm_initialize_api();
+  
+  /* 
+  // available params  
+          'contact_id' => '1',
+          'contact_type' => 'Individual',
+          'sort_name' => 'Anderson, Anthony',
+          'display_name' => 'Anthony Anderson',
+          'contribution_id' => '1',
+          'currency' => 'USD',
+          'receive_date' => '2010-01-20 00:00:00',
+          'non_deductible_amount' => '10.00',
+          'total_amount' => '100.00',
+          'fee_amount' => '51.00',
+          'net_amount' => '91.00',
+          'trxn_id' => '23456',
+          'invoice_id' => '78910',
+          'contribution_source' => 'SSF',
+          'is_test' => 0,
+          'is_pay_later' => 0,
+          'contribution_type_id' => '11',
+          'contribution_type' => 'Prize',
+          'accounting_code' => '1005',
+          'contribution_status_id' => '1',
+          'contribution_status' => 'Completed',
+          'id' => '1',
+  */
+  
+  //Get current user civicrm id
+  $contact = $GLOBALS->user;
+  
+  
+  //Get all class contributions for civi user
+  $contributions = civicrm_api( 'contribution', 'get', $params );
+  return $result;
+}
+
+function classy_civicrm_contribution_used($contribution_id){
+  _classy_civicrm_initialize_api();
+  
+  return $result;
+}
+
+
+
+ 
+ 
+/**
+ * Add 'approved' role / permission to user
+ */
+ 
+ // correct time to do this is when someone orders a class credit 
+ // how should we handle multiple credits?  can I 'mark' a contribution as used?
+
+ 
+
+
+// ///////////////////////old event handling///////////////////
+
+
+/*
+ * Implementation of hook_node_delete()
+ */
+
+function classy_civicrm_node_delete($node) {
+  if ($node->type == 'event'  && !empty($node->field_event_id)) {
+    classy_civicrm_delete_event($node->field_event_id[$node->language][0]['value']);
+  }  
+}
+
+function _classy_civicrm_event_submit(&$form, &$form_state) {
+  //dpm($form_state); //preview the submission to see this
+  //initialize the parameter array and set known defaults
+  _classy_civicrm_initialize_api();
+
+  $params = array(
+   'version' => 3,
+  );
+  
+
+  // if new event load a specified template to get default values, then override them with specific values
+  if (isset($params['id']) != TRUE) {
+    
+    $template = civicrm_api( 'ApiAdditions', 'geteventtemplate', array('version'=>3)); 
+
+    //@todo - change this to use the object, rather than describing the field list again
+    //set certain default parameters from the template
+
+    $elements = array(
+      'is_public',
+      'event_full_text',
+      'is_active',
+      'is_show_location',
+      'is_multiple_registrations',
+      'allow_same_participant_emails',
+      'intro_text',
+      'footer_text',
+      'confirm_title',	
+      'confirm_text',	
+      'confirm_footer_text',
+      'is_email_confirm',
+      'confirm_email_text',	
+      'confirm_from_name',
+      'confirm_from_email',	
+      'cc_confirm',
+      'bcc_confirm',
+      'max_participants',
+      'loc_block_id',
+    );
+    foreach ($elements as $element) {
+      $params[$element] = $template->$element;
+    } 
+ 
+  }
+ 
+  //Override values using form values
+  $params['title'] = $form_state['values']['title'];
+  $params['description'] = $form_state['values']['body'][$form_state['values']['language']][0]['value'];
+  $params['is_public'] = $form_state['values']['field_public'][$form_state['values']['language']][0]['value'];
+  $params['is_active'] = $form_state['values']['status'];
+  $params['is_show_location'] = $form_state['values']['field_event_map_incl'][$form_state['values']['language']][0]['value'];
+  
+  
+  //Get the event term civi id
+  $civi_type_id = taxonomy_term_load($form_state['values']['field_term_event_type'][$form_state['values']['language']][0]['tid']);
+  $type_id = $civi_type_id->field_civi_type_id['und'][0]['value'];
+  $params['event_type_id'] = $type_id;
+  
+  //can users register online for the event?  
+  $reg_online = $form_state['values']['field_event_registration_online'][$form_state['values']['language']][0]['value'];
+  $params['is_online_registration'] = $reg_online;
+    
+  //convert the date fields into formats usable by civi
+  //event dates 
+  $zone = new DateTimeZone('America/New_York');
+  $start_str = $form_state['values']['field_event_date'][$form_state['values']['language']][0]['value'];
+  $start_date = New DateTime($start_str . " GMT");  //drupal provides gmt for all times
+  $start_date->setTimeZone($zone);
+  $start_format = date_format($start_date, 'YmdHis');
+
+  $end_str = $form_state['values']['field_event_date'][$form_state['values']['language']][0]['value2'];
+  $end_date = New DateTime($end_str . " GMT");
+  $end_date->setTimeZone($zone);
+  $end_format = date_format($end_date, 'YmdHis');
+  
+  $params['start_date'] = $start_format;
+  $params['end_date'] = $end_format;
+
+  //registration dates
+  if ($form_state['values']['field_event_reg_limit'][$form_state['values']['language']][0]['value'] == TRUE) {
+    $rstart_str = $form_state['values']['field_event_registration'][$form_state['values']['language']][0]['value'];
+    $rstart_date = New DateTime($rstart_str . " GMT");
+    $rstart_date->setTimeZone($zone);
+    $rstart_format = date('YmdHis', strtotime($rstart_date->date));
+    
+    $rend_str = $form_state['values']['field_event_registration'][$form_state['values']['language']][0]['value2'];
+    $rend_date = New DateTime($rend_str . " GMT");
+    $rend_date->setTimeZone($zone);
+    $rend_format = date('YmdHis', strtotime($rend_date->date));
+  
+  
+  } else {  //if unlimited registration, cut registration at the start of the event
+    $rstart_format = date('YmdHis', $form_state['values']['created']);
+    $rend_format = $start_format;  
+  }
+  
+  $params['registration_start_date'] = $rstart_format;
+  $params['registration_end_date'] = $rend_format;
+  
+  
+  if (!empty($form_state['values']['field_event_attendees'][$form_state['values']['language']][0]['value'])) {
+    $params['max_participants'] = $form_state['values']['field_event_attendees'][$form_state['values']['language']][0]['value'];
+    $params['max_participants'] = $form_state['values']['field_event_attendees'][$form_state['values']['language']][0]['value'];
+  }
+  
+  //Check & update location information
+  if (!empty($form_state['values']['field_event_address'][$form_state['values']['language']][0]['value'])) {
+   
+    //check civi addresses to find a match 
+    $address = array(
+      'street_address' => $form_state['values']['field_event_address'][$form_state['values']['language']][0]['value'],
+      'city' => $form_state['values']['field_event_city'][$form_state['values']['language']][0]['value'],     
+      'postal_code' => $form_state['values']['field_event_zip'][$form_state['values']['language']][0]['value'],
+      'location_type_id' => 3,  //is a 'main' address (required key)
+      'version' => 3,
+    ); 
+    
+    $match = civicrm_api('address', 'get', $address);
+    // if found, get a locBlock id for the address to add to the record
+    if ($match['is_error'] == 0 && !empty($match['values'])) {
+      $match_pick = reset($match['values']);
+      $match['id'] = $match_pick['id'];
+      $block_id = CRM_Core_DAO::getfieldvalue('CRM_Core_DAO_LocBlock',$match['id'],'id','address_id');
+      //if no locblock record, create one (only adds address, not phone, email, etc)
+      if (is_null($block_id)) {
+        $value = $match['id'];
+        $query = "INSERT INTO civicrm_loc_block (address_id) VALUES ($value)";
+        $dao =& CRM_Core_DAO::executeQuery($query);
+        $block_id = CRM_Core_DAO::getfieldvalue('CRM_Core_DAO_LocBlock',$match['id'],'id','address_id');
+        //dpm($block_id); //@todo - fix this - gotta be a better way than a second call
+      }
+        
+    } else { //create a civi address record from the node
+      //@todo - find out if there is a direct way to create an address via the api
+      //@todo - temp speed fix limits country to US (id 1228)
+      
+      $abbr = $form_state['values']['field_event_state'][$form_state['values']['language']][0]['value'];
+      
+      $query = "SELECT id FROM 
+        civicrm_state_province 
+        WHERE 
+          abbreviation = '$abbr' 
+        AND
+          country_id = 1228";
+      $dao =& CRM_Core_DAO::executeQuery($query);
+      $dao->fetch();
+      $state_code = $dao->id;
+      
+      //@todo - get correct state / country codes for civi using ===> civicrm_api('constant', 'get', $var)    
+      /*API doesn't return anything useful - just name of state and id- might be helpful for country though
+      $state_params = array(
+        //'name' => $form_state['values']['field_event_state'][$form_state['values']['language']][0]['value'],
+        'name' => 'stateProvince',
+        'version' => 3,
+      );
+      $state_codes = civicrm_api('constant', 'get', $state_params); */ 
+             
+      //contact_id or id is required?
+      //$address['contact_id'] = NULL;
+      $address['state_province_id'] = $state_code;
+      $address['country_id'] = 1228; //?correct
+      
+      //create the address record
+      $query = "INSERT INTO civicrm_address 
+        (`location_type_id`,
+        `street_address`,
+        `city`,
+        `state_province_id`,
+        `postal_code`,
+        `country_id`)
+        VALUES (
+          " . $address['location_type_id'] . ",
+          '" . $address['street_address'] . "',
+          '" . $address['city'] . "',
+          " . $address['state_province_id'] . ",
+          " . $address['postal_code'] . ",
+          " . $address['country_id'] . "
+          )";
+          
+      $dao =& CRM_Core_DAO::executeQuery($query);
+ 
+      // grab the row id, to add it to the loc block 
+      $match = civicrm_api('address', 'get', $address);      
+      $value = $match['id'];
+      $query = "INSERT INTO civicrm_loc_block (address_id) VALUES ($value)";
+      $dao =& CRM_Core_DAO::executeQuery($query);
+      $block_id = CRM_Core_DAO::getfieldvalue('CRM_Core_DAO_LocBlock',$match['id'],'id','address_id');
+ 
+      
+    } 
+    $params['loc_block_id'] = $block_id;
+    
+    //@todo - check on whether there is another way to do this, or add it to the 'api_additions'
+ 
+  } else { //if (isset($template) && !empty($template)) {  // use the template location address
+    //@todo - check on whether there is another way to do this, or add it to the 'api_additions'
+    $address_id = CRM_Core_DAO::getfieldvalue('CRM_Core_DAO_LocBlock',$template->loc_block_id,'address_id');
+    if($address_id){
+      $query = "SELECT
+        street_address ,
+        supplemental_address_1 ,
+        city ,     
+        sp.abbreviation ,
+        postal_code ,
+        cc.name 
+        FROM civicrm_address 
+        LEFT JOIN
+          civicrm_state_province sp ON (civicrm_address.state_province_id = sp.id)
+        LEFT JOIN
+          civicrm_country cc ON (civicrm_address.country_id = cc.id )
+        WHERE civicrm_address.id=$address_id";
+      $empty_params = array();
+      $dao =& CRM_Core_DAO::executeQuery( $query, $empty_params );
+      $dao->fetch( );
+      $template_address = $dao;
+    }  
+  }  
+  
+  
+
+  /******* Paid events *********
+  @todo: currently there isn't much of a way to get the price set associated with 
+  an event through the API.  I'll need to add a PriceSet.php to the api to get things 
+  working (big project) to be able to display the prices along with the event.
+  civicrm_price_set => lists id and name
+  civicrm_price_set_entity => lists entities using the price set
+  civicrm_price_field => lists the field options with ref to price_set_id
+  civicrm_price_field_value => lists the values for a given field with ref to price_field_id
+  **************/
+  if ($form_state['values']['field_event_ispaid'][$form_state['values']['language']][0]['value'] !== 0) {
+    $monetary = $form_state['values']['field_event_ispaid'][$form_state['values']['language']][0]['value'];
+    $contribution_type = '';
+    $vocab = taxonomy_vocabulary_machine_name_load('contribution_type');
+    $terms = taxonomy_get_term_by_name('Event Fee');
+    //need to filter terms by vocab 
+    foreach ($terms as $term) {
+      if ($term->vid == $vocab->vid) {
+        $contribution_type = $term->field_civi_type_id['und'][0]['value'];  //@todo, see if this can be switched to match language
+      $params['contribution_type_id'] = $contribution_type;
+      }
+    }
+  } else {
+    $monetary = 0;
+  }
+  
+  $params['is_monetary'] = $monetary;
+  
+  if (!empty($form_state['values']['field_event_teaser'][$form_state['values']['language']][0]['value'])) {
+    $summary = $form_state['values']['field_event_teaser'][$form_state['values']['language']][0]['value'];
+  } else {
+    $summary = '';
+  }
+  $params['summary'] = $summary;
+  
+  //these values are currently all required on the form
+ /* 
+   //distributing
+  $params = array( 
+    'title' => $form_state['values']['title'],
+    'summary' => $summary,
+    'description' => $form_state['values']['body'][$form_state['values']['language']][0]['value'],
+    'event_type_id' => $type_id,
+    'is_public' => $form_state['values']['field_public'][$form_state['values']['language']][0]['value'],
+    'start_date' => $start_format,
+    'end_date' => $end_format,
+    'is_online_registration' => $reg_online,
+    'registration_start_date' => $rstart_format,
+    'registration_end_date' => $rend_format,
+    'max_participants' => $participants,
+    'event_full_text' => $form_state['values']['body'][$form_state['values']['language']][0]['value'],
+    'is_monetary' => $monetary,
+	  'contribution_type_id' => $contribution_type,
+    'is_active' => $form_state['values']['status'],
+    'is_show_location' => $form_state['values']['field_event_map_incl'][$form_state['values']['language']][0]['value'],
+    'version' => 3,
+  );*/
+  
+  // create the event record in civi
+  $civi_id = classy_civicrm_create_event($params);  
+  
+  //tack on the standard civi profile to every created event
+  //check to see if it's already there (event being updated)
+  $query = "SELECT id FROM civicrm_uf_join WHERE entity_id=$civi_id";
+  $dao =& CRM_Core_DAO::executeQuery($query);
+  $dao->fetch();
+  // add the records if not
+  if (!isset($dao->id)) {
+    $query = "INSERT INTO civicrm_uf_join (
+      `is_active`,
+      `module`,
+      `entity_table`,
+      `entity_id`,
+      `uf_group_id`)
+      VALUES
+       (1,'CiviEvent_Additional','civicrm_event', $civi_id, 1),
+       (1,'CiviEvent','civicrm_event', $civi_id, 1)";
+    $dao =& CRM_Core_DAO::executeQuery($query);
+  }
+  //update the node with any default values that were not overridden
+  form_set_value($form['field_event_id']['und'][0]['value'], $civi_id, $form_state);
+  if (!isset($address)) {
+    form_set_value($form['field_event_address']['und'][0]['value'], $template_address->street_address, $form_state);
+    form_set_value($form['field_event_city']['und'][0]['value'], $template_address->city, $form_state);
+    //form_set_value($form['field_event_state']['und'][0]['value'], $template_address->street_address, $form_state);
+    form_set_value($form['field_event_zip']['und'][0]['value'], $template_address->postal_code, $form_state);
+  }
+  
+  return;
+}
+
+//Civi API call, handles both create and update
+function classy_civicrm_create_event($params){
+  _classy_civicrm_initialize_api();
+  $created = civicrm_api( 'event','create',$params );
+  //dpm($created);  //visible only on preview
+  //when successful, we need to get the newly created civi id and pass it back to drupal  
+  if ($created == true) {
+    $event = civicrm_api('event','get', array('title'=>$params['title'], 'version'=>3));
+	  foreach ($event['values'] as $new_event) {
+      $result = $new_event['id'];
+    }
+  }
+  return $result;
+}
+
+function classy_civicrm_delete_event($eid){
+  _classy_civicrm_initialize_api();
+  $result = civicrm_api('event','delete',array('id' => $eid, 'version' => 3));
+  //dpm($result);  //get civi error 
+  return $result;
+}

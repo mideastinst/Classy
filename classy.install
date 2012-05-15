@@ -2,26 +2,10 @@
 
 /**
  * @file
- * Install file for Node Example module.
- *
- * The definition of the fields for the module is here,
- *
- * See @link http://drupal.org/node/707832 Field API Tutorial @endlink
- *
- * See @link http://drupal.org/node/443536 Field API Handbook Page @endlink
- *
- * See @link field Field API documentation @endlink
- *
  */
 
 /**
  * Implements hook_install().
- *
- * @see node_type_set_defaults()
- * @see field_info_instance()
- * @see field_update_instance()
- * @see field_create_field()
- * @see field_create_instance()
  */
 function classy_install() {
   $t = get_t();
@@ -146,28 +130,20 @@ function _classy_course_installed_fields() {
   return array(
     'classy_language_id' => array(  
       'field_name'  => 'classy_language_id',
-      'type' => 'taxonomy_term_reference',
       'cardinality' => 1,
+      'type'        => 'entityreference',
       'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'vocabulary' => 'classy_language',
-            'parent' => 0,
-          ),
-        ),
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_language')),
       ),
     ),
     'classy_level_id' => array(  
       'field_name'  => 'classy_level_id',
-      'type' => 'taxonomy_term_reference',
       'cardinality' => 1,
+      'type'        => 'entityreference',
       'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'vocabulary' => 'classy_level',
-            'parent' => 0,
-          ),
-        ),
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_level')),
       ),
     ),
     'classy_abbrev_id' => array(  
@@ -201,7 +177,10 @@ function _classy_course_installed_instances() {
       ),
       'display' => array(
         'default' => array (
-          'type' => 'taxonomy_term_reference_plain',
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
         ),
         'classy_list' => array(
           'label' => 'hidden',
@@ -217,7 +196,10 @@ function _classy_course_installed_instances() {
       ),
       'display' => array(
         'default' => array (
-          'type' => 'taxonomy_term_reference_plain',
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
         ),
         'classy_list' => array(
           'label' => 'hidden',
@@ -262,41 +244,29 @@ function _classy_class_installed_fields() {
     ),
     'classy_year_id' => array(  
       'field_name'  => 'classy_year_id',
-      'type' => 'taxonomy_term_reference',
       'cardinality' => 1,
+      'type'        => 'entityreference',
       'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'vocabulary' => 'classy_year',
-            'parent' => 0,
-          ),
-        ),
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_year')),
       ),
     ),
     'classy_semester_id' => array(  
       'field_name'  => 'classy_semester_id',
-      'type' => 'taxonomy_term_reference',
       'cardinality' => 1,
+      'type'        => 'entityreference',
       'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'vocabulary' => 'classy_semester',
-            'parent' => 0,
-          ),
-        ),
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_semester')),
       ),
     ),
     'classy_time_id' => array(  
       'field_name'  => 'classy_time_id',
-      'type' => 'taxonomy_term_reference',
       'cardinality' => 1,
+      'type'        => 'entityreference',
       'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'vocabulary' => 'classy_time',
-            'parent' => 0,
-          ),
-        ),
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_time')),
       ),
     ),
     'classy_teacher_id' => array(  
@@ -329,14 +299,14 @@ function _classy_class_installed_instances() {
   return array(
     'classy_course_id' => array(
       'field_name' => 'classy_course_id',
+      'label' => $t('Course'),
       'entity_type' => 'node',
-      'label'       => $t('Course'),
-      'widget'      => array(
-        'type'    => 'options_select',
-      ),
       'settings' => array(
         'target_type' => 'node',
         'handler_settings' => array('target_bundles' => array('course')),
+      ),
+      'widget' => array(
+        'type' => 'options_select',
       ),
       'display' => array(
         'classy_list' => array(
@@ -348,12 +318,21 @@ function _classy_class_installed_instances() {
     'classy_year_id' => array(
       'field_name'  => 'classy_year_id',
       'label' => $t('Year'),
-      'widget'      => array(
-        'type'    => 'options_select',
+      'entity_type' => 'taxonomy_term',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_year')),
+      ),      
+      'widget' => array(
+        'type' => 'options_select',
       ),
+
       'display' => array(
         'default' => array (
-          'type' => 'taxonomy_term_reference_plain',
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
         ),
         'classy_list' => array(
           'label' => 'hidden',
@@ -364,12 +343,20 @@ function _classy_class_installed_instances() {
     'classy_semester_id' => array(
       'field_name' => 'classy_semester_id',
       'label'       => $t('Semester'),
-      'widget'      => array(
-        'type'    => 'options_select',
+      'entity_type' => 'taxonomy_term',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_semester')),
+      ),      
+      'widget' => array(
+        'type' => 'options_select',
       ),
       'display' => array(
         'default' => array (
-          'type' => 'taxonomy_term_reference_plain',
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
         ),
         'classy_list' => array(
           'label' => 'hidden',
@@ -380,12 +367,20 @@ function _classy_class_installed_instances() {
     'classy_time_id' => array(
       'field_name' => 'classy_time_id',
       'label'       => $t('Time'),
-     'widget'      => array(
-        'type'    => 'options_select',
+      'entity_type' => 'taxonomy_term',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_year')),
+      ),      
+      'widget' => array(
+        'type' => 'options_select',
       ),
       'display' => array(
         'default' => array (
-          'type' => 'taxonomy_term_reference_plain',
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
         ),
         'classy_list' => array(
           'label' => 'hidden',
