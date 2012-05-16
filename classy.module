@@ -9,6 +9,52 @@ function classy_menu() {
     'access arguments' => array('access content'),
     'title' => 'Classy',
   );
+
+  $items['admin/classy'] = array(
+    'title' => 'ClassySIS',
+    'description' => 'Administer the Class Registration System.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'),
+    'file path' => drupal_get_path('module', 'system'),
+    'file' => 'system.admin.inc',
+    'weight' => -7,
+  );
+
+  $items['admin/classy/students'] = array(  // view
+    'title' => 'Students',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('classy_student_settings_form'),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/classy_ui.admin.inc',
+    'weight' => -20,
+  );
+  $items['admin/classy/instructors'] = array(  // view
+    'title' => 'Instructors',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'classy_admin_instructors',
+    'access arguments' => array('access administration pages'),
+    'weight' => -10,
+  );  
+  $items['admin/classy/instructors'] = array(  // view
+    'title' => 'Instructors',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'classy_admin_instructors',
+    'access arguments' => array('access administration pages'),
+    'weight' => -10,
+  ); 
+  $items['admin/classy/config'] = array(
+    'title' => 'Classy Configuration',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 50,
+    'file path' => drupal_get_path('module', 'system'),
+    'file' => 'system.admin.inc',
+  );
+  
+  
+  
   return $items;
 }
 
@@ -39,6 +85,10 @@ function classy_page() {
   }
 
   return $build;
+}
+
+function classy_admin_instructors() {
+  return 'This will be the instructors area';
 }
 
 /**
@@ -158,10 +208,13 @@ function classy_preprocess_node(&$vars) {
           //check to see if user has available class credits to spend - this is civi integration for payment
           //@todo - might swap this for a check against a specific permission using: 
           //user_access('register for classes'); 
-          if (in_array('paid', $GLOBALS['user']->roles)) {
+          if (in_array('approved', $GLOBALS['user']->roles)) {
             $vars['registration'] = "go for it dude";
           } else {
-            $vars['registration'] = "You have no available credits <button class='submit'>" . l(t('Add Credits'), $base_url . '/user', array ('alt'=>'Add') ) . "</button>";
+            
+            //this ties directly to civi, which we don't want.  It should be an overridable link to a 'seek permission' call.
+            $contrib_id = '4';
+            $vars['registration'] = "You have no available credits <button class='submit'>" . l(t('Add Credits'), $base_url . '/civicrm/contribute/transact?reset=1&id=' . $contrib_id, array ('alt'=>'Add') ) . "</button>";
           }
         
         } else {

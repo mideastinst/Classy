@@ -5,7 +5,7 @@ $view->name = 'classes';
 $view->description = '';
 $view->tag = 'default';
 $view->base_table = 'node';
-$view->human_name = 'classes';
+$view->human_name = 'Classes';
 $view->core = 7;
 $view->api_version = '3.0';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
@@ -15,6 +15,7 @@ $handler = $view->new_display('default', 'Master', 'default');
 $handler->display->display_options['title'] = 'classes';
 $handler->display->display_options['use_ajax'] = TRUE;
 $handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['access']['perm'] = 'access administration pages';
 $handler->display->display_options['cache']['type'] = 'none';
 $handler->display->display_options['query']['type'] = 'views_query';
 $handler->display->display_options['query']['options']['query_comment'] = FALSE;
@@ -162,3 +163,64 @@ $handler->display->display_options['filters']['type']['value'] = array(
 /* Display: Current */
 $handler = $view->new_display('page', 'Current', 'current');
 $handler->display->display_options['path'] = 'classes';
+$handler->display->display_options['menu']['title'] = 'Check';
+$handler->display->display_options['menu']['weight'] = '0';
+$handler->display->display_options['menu']['name'] = 'management';
+$handler->display->display_options['menu']['context'] = 0;
+
+/* Display: Active */
+$handler = $view->new_display('page', 'Active', 'active');
+$handler->display->display_options['defaults']['filters'] = FALSE;
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'class' => 'class',
+);
+$handler->display->display_options['filters']['type']['group'] = 1;
+/* Filter criterion: Content: Year (classy_year_id) */
+$handler->display->display_options['filters']['classy_year_id_target_id']['id'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['table'] = 'field_data_classy_year_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['field'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_year_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['operator_id'] = 'classy_year_id_target_id_op';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['label'] = 'Year';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['operator'] = 'classy_year_id_target_id_op';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['identifier'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['reduce'] = 0;
+/* Filter criterion: Content: Semester (classy_semester_id) */
+$handler->display->display_options['filters']['classy_semester_id_target_id']['id'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['table'] = 'field_data_classy_semester_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['field'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_semester_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['operator_id'] = 'classy_semester_id_target_id_op';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['label'] = 'Semester';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['operator'] = 'classy_semester_id_target_id_op';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['identifier'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['reduce'] = 0;
+/* Filter criterion: Content: Time (classy_time_id) */
+$handler->display->display_options['filters']['classy_time_id_target_id']['id'] = 'classy_time_id_target_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['table'] = 'field_data_classy_time_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['field'] = 'classy_time_id_target_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_time_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['operator_id'] = 'classy_time_id_target_id_op';
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['label'] = 'Time';
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['operator'] = 'classy_time_id_target_id_op';
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['identifier'] = 'classy_time_id_target_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['reduce'] = 0;
+$handler->display->display_options['path'] = 'admin/classy/active';
+$handler->display->display_options['menu']['type'] = 'tab';
+$handler->display->display_options['menu']['title'] = 'Classes';
+$handler->display->display_options['menu']['weight'] = '0';
+$handler->display->display_options['menu']['context'] = 0;

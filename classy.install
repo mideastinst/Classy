@@ -91,18 +91,18 @@ function classy_install() {
   );
   user_role_change_permissions($student_rid, $student_perms);
    
-  //paid student
+  //approved student
   $role = new stdClass();
-  $role->name = 'paid';
+  $role->name = 'approved';
   $role->weight = 6;
   user_role_save($role);
-  $paid = user_role_load_by_name('student'); 
-  $paid_rid = $paid->rid;
-  $paid_perms = array(
+  $approved = user_role_load_by_name('student'); 
+  $approved_rid = $approved->rid;
+  $approved_perms = array(
     'administer blocks' => TRUE, // Grant permission
     'access dashboard' => FALSE, // Revoke permission
   );
-  user_role_change_permissions($paid_rid, $paid_perms);
+  user_role_change_permissions($approved_rid, $approved_perms);
     
   //instructor
   $role = new stdClass();
@@ -134,7 +134,20 @@ function _classy_course_installed_fields() {
       'type'        => 'entityreference',
       'settings' => array(
         'target_type' => 'taxonomy_term',
-        'handler_settings' => array('target_bundles' => array('classy_language')),
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),
+          'target_bundles' => array('classy_language'),
+        ),
       ),
     ),
     'classy_level_id' => array(  
@@ -143,13 +156,26 @@ function _classy_course_installed_fields() {
       'type'        => 'entityreference',
       'settings' => array(
         'target_type' => 'taxonomy_term',
-        'handler_settings' => array('target_bundles' => array('classy_level')),
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),
+          'target_bundles' => array('classy_level'),
+        ),
       ),
     ),
     'classy_abbrev_id' => array(  
       'field_name'  => 'classy_abbrev_id',
       'cardinality' => 1,
-      'type'        => 'text',  //check references to see how to make this a tid ref
+      'type'        => 'text',  
     ),
   );
 }
@@ -159,10 +185,7 @@ function _classy_course_installed_fields() {
  *
  * The instance lets Drupal know which widget to use to allow the user to enter
  * data and how to react in different view modes.  We are going to display a
- * page that uses a custom "classy_list" view mode.  We will set a
- * cardinality of three allowing our content type to give the user three color
- * fields.
- *
+ * page that uses a custom "classy_list" view mode. 
  * This is provided as a function so that it can be used in both hook_install()
  * and hook_uninstall().
  */
@@ -248,7 +271,20 @@ function _classy_class_installed_fields() {
       'type'        => 'entityreference',
       'settings' => array(
         'target_type' => 'taxonomy_term',
-        'handler_settings' => array('target_bundles' => array('classy_year')),
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),
+          'target_bundles' => array('classy_year'),
+        ),
       ),
     ),
     'classy_semester_id' => array(  
@@ -257,7 +293,20 @@ function _classy_class_installed_fields() {
       'type'        => 'entityreference',
       'settings' => array(
         'target_type' => 'taxonomy_term',
-        'handler_settings' => array('target_bundles' => array('classy_semester')),
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),        
+          'target_bundles' => array('classy_semester'),
+        ),
       ),
     ),
     'classy_time_id' => array(  
@@ -266,7 +315,20 @@ function _classy_class_installed_fields() {
       'type'        => 'entityreference',
       'settings' => array(
         'target_type' => 'taxonomy_term',
-        'handler_settings' => array('target_bundles' => array('classy_time')),
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),
+          'target_bundles' => array('classy_time'),
+        ),
       ),
     ),
     'classy_teacher_id' => array(  
@@ -287,9 +349,7 @@ function _classy_class_installed_fields() {
  *
  * The instance lets Drupal know which widget to use to allow the user to enter
  * data and how to react in different view modes.  We are going to display a
- * page that uses a custom "classy_list" view mode.  We will set a
- * cardinality of three allowing our content type to give the user three color
- * fields.
+ * page that uses a custom "classy_list" view mode. 
  *
  * This is provided as a function so that it can be used in both hook_install()
  * and hook_uninstall().
