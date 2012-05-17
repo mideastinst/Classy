@@ -1,0 +1,50 @@
+<?php
+
+function classy_civicrm_schema() {
+  // Define a table for storing student grades
+  $schema['classy_civicrm_credits'] = array (
+    'description' => 'Student Enrollment Credits',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key for credits table',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'drupal_uid' => array(
+        'description' => 'Drupal uid reference',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE,
+      ),
+      'civi_contact_id' => array(
+        'description' => 'CiviCRM contact reference',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE,
+      ),
+      'civi_contribution_id' => array(
+        'description' => 'CiviCRM Contribution reference',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE,
+      ),
+      'paid' => array(
+        'description' => 'is the contribution paid',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ), 
+      'used' => array(
+        'description' => 'is the credit used',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),      
+      
+    ),
+    'primary key' => array('id'),
+  ); 
+  
+  return $schema;
+}

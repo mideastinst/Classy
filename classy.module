@@ -179,7 +179,7 @@ function _classy_insert_after_first_element(&$a, $element) {
  * All the additional custom node variables are assembled here.
  */
 function classy_preprocess_node(&$vars) {
-  //dpm($GLOBALS['user']);
+
   //Add view mode theme suggestions
   $vars['theme_hook_suggestions'][] = 'node__' . $vars['type'] . '__' . $vars['view_mode'];
 
@@ -187,8 +187,8 @@ function classy_preprocess_node(&$vars) {
   //dpm(context_get());
   //dpm(menu_get_active_trail());
   
-  //global $language;
   global $base_url;
+  //global $language;
   if (isset($vars['type'])) {
     switch ($vars['type']) {
 	    case 'profile':
@@ -198,32 +198,19 @@ function classy_preprocess_node(&$vars) {
       case 'course':
         break;      
       case 'class':
-        //dpm($vars);
         
         //Load related course information
         
-        //check to see if the user has is logged in
-        if ($vars['logged_in'] == TRUE) {
-          //dpm($GLOBALS['user']->roles);          
-          //check to see if user has available class credits to spend - this is civi integration for payment
-          //@todo - might swap this for a check against a specific permission using: 
-          //user_access('register for classes'); 
-          if (in_array('approved', $GLOBALS['user']->roles)) {
-            $vars['registration'] = "go for it dude";
-          } else {
-            
-            //this ties directly to civi, which we don't want.  It should be an overridable link to a 'seek permission' call.
-            $contrib_id = '4';
-            $vars['registration'] = "You have no available credits <button class='submit'>" . l(t('Add Credits'), $base_url . '/civicrm/contribute/transact?reset=1&id=' . $contrib_id, array ('alt'=>'Add') ) . "</button>";
+        //send course info to approval criteria?
+        $criteria = classy_approval_criteria($vars['type']);
+        foreach ($criteria as $criterion) {
+          if ($criterion['pass'] == FALSE) {
+            $vars['registration']['text'] = $criterion['text'];
+            $vars['registration']['target'] = $base_url . $criterion['target'];
+            break;
           }
-        
-        } else {
-          $vars['registration'] = "<button class='submit'>" . l(t('Log In to Register'), $base_url . '/user', array ('alt'=>'Register') ) . "</button>";
-          
         }
         break;
-      
-   
 	    case 'site_page':
 	      unset($vars['content']['links']);
 	      unset($vars['content']['comments']);
@@ -263,5 +250,24 @@ function classy_preprocess_node(&$vars) {
 //@todo hook into signup and add check for 'paid' status
 
 
-
-
+/**
+ * Creates a hook to specify validation permissions
+ *
+ * Validation criteria have 3 levels - annonymous, authenticated (can't sign up) and authorized - array
+ *
+ *
+ */
+function classy_approval_criteria($type) {
+  $criteria = array();
+  //user must be logged in
+  global $user;
+  if ($user->uid) {
+    $criteria[] = array('type'=>'logged_in', 'pass'=>TRUE);  
+  } else {
+    $criteria[] = array('type'=>'logged_in', 'pass'=>FALSE, 'target'=>'/user', 'text' => 'Please Log In',);
+  }
+  //get all criteria from other modules
+  $external_criteria = module_invoke_all('approval_criterion', $type);
+  $criteria[] = $external_criteria;
+  return $criteria;
+}

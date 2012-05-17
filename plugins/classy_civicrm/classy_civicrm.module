@@ -2,18 +2,14 @@
 
 //remove
 function classy_civicrm_preprocess_node($vars) {
-
-  //use uf_match to get the contact based on drupal user
-  _classy_civicrm_initialize_api();
-  $contact = civicrm_api('UFMatch', 'get', array('version' => 3, 'uf_id' => $GLOBALS['user']->uid));
-  foreach ($contact['values'] as $drupal_user){
-    $civiuser = civicrm_api('contact' , 'get', array('version' => 3, 'id' => $drupal_user['contact_id']));
-    dpm($civiuser);
-  }
- 
+  
+  /*_classy_civicrm_initialize_api();
+  $civiuser = classy_civicrm_contact();
+  $result = classy_civicrm_contribution_credits($civiuser, '6');
+  dpm($result);*/
 }
 
-
+//can I shift $params to a generic set for the user, rather than pushing collection into each function?
 
 /** 
  * Aggregates all calls to the CiviCRM API
@@ -27,31 +23,75 @@ function _classy_civicrm_initialize_api() {
   require_once $civi_api_path;
 } 
 
-/**
- * Implementation of hook_form_alter() 
- */
- 
-function classy_civicrm_form_event_node_form_alter(&$form, &$form_state, $form_id) {
-  //Add event creation to the node submission event
-  $form['#submit'][] = '_classy_civicrm_event_submit';
+
+function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
+  switch ($op) {
+    case 'create':
+    case 'edit':
+      if ($objectName == 'Contribution') {
+        //dpm($objectId);  //gives us the contribution id
+        $uid = $GLOBALS['user']->uid;
+        
+        _classy_civicrm_initialize_api();
+        $civiuser = classy_civicrm_contact($uid);
+        $credit = classy_civicrm_contribution_credits($civiuser, $objectId);
+        
+        //check to see if language class contribution type
+        $contribution_types = array('5', '6', '7',); //@todo move to configuration var
+        if (in_array($credit['values'][$objectId]['contribution_type'], $contribution_types)) {
+          //check to see if already in credits table
+                
+          $result = db_query('SELECT n.nid, n.title, n.created FROM {classy_civicrm_credits} c WHERE c.drupal_uid = :uid', array(':uid' => $uid));
+          foreach ($result as $record) {
+  // Perform operations on $record->title, etc. here.
+  // in this example the available data would be mapped to object properties:
+  // $record->nid, $record->title, $record->created
+          }
+          //check if paid or waiting
+          
+          //add language contributions to credits table
+          $table = 'classy_civicrm_credits';
+          $record = array(
+            'drupal_uid' => $uid,
+            'civi_contact_id' => $civiuser['id'],
+            'civi_contribution_id' => $objectId,
+            'paid' => $is_paid,
+            'used' => 0,
+          );
+          drupal_write_record($table, $record);
+        
+        }
+        
+      }
+      break;
+    default:
+      break;
+  }
 }
 
-
 /**
- * CiviCRM get contact  --nec?
+ * CiviCRM get contact 
  */
-
-// @todo
-
+function classy_civicrm_contact($uid = NULL) {
+  if (!$uid) {
+    $uid = $GLOBALS['user']->uid;
+  }
+  //@todo breaks on anon user  
+  //Get current user civicrm id - use uf_match to get the contact based on drupal user
+  $contact = civicrm_api('UFMatch', 'get', array('version' => 3, 'uf_id' => $uid));
+  foreach ($contact['values'] as $drupal_user){
+    $civiuser = civicrm_api('contact' , 'get', array('version' => 3, 'id' => $drupal_user['contact_id']));
+  }
+  return $civiuser;
+}
 
 /**
  * CiviCRM get contribution
+ *
+ * Get class contributions for civi user
  */ 
 
-//Only get contributions of the correct type 
-//Civi API call, handles both create and update
-function classy_civicrm_contribution_get($params){
-  _classy_civicrm_initialize_api();
+function classy_civicrm_contribution_credits($civiuser, $contribution_id = NULL){
   
   /* 
   // available params  
@@ -78,25 +118,15 @@ function classy_civicrm_contribution_get($params){
           'contribution_status' => 'Completed',
           'id' => '1',
   */
-  
-  //Get current user civicrm id
-  $contact = $GLOBALS->user;
-  
-  
-  //Get all class contributions for civi user
+  $params = array('version' => 3, 'contact_id' => $civiuser['id']);
+  if ($contribution_id) {
+    $params['contribution_id'] = $contribution_id;
+  }
   $contributions = civicrm_api( 'contribution', 'get', $params );
-  return $result;
-}
-
-function classy_civicrm_contribution_used($contribution_id){
-  _classy_civicrm_initialize_api();
-  
-  return $result;
+  return $contributions;
 }
 
 
-
- 
  
 /**
  * Add 'approved' role / permission to user
@@ -105,11 +135,45 @@ function classy_civicrm_contribution_used($contribution_id){
  // correct time to do this is when someone orders a class credit 
  // how should we handle multiple credits?  can I 'mark' a contribution as used?
 
+function classy_civicrm_approval_criterion($type) {
+  //added criteria - entry in 'credits' table
+  if ($type == 'class') {
+    $contrib_id = '4';
+  } else {
+    $contrib_id = '5';
+  }
+  
+  //check credits table for 'paid', !'used' entries for the selected contrib_id
+  
+  
+  $credit=FALSE;
+  //check for credits
+  if ($credit == TRUE) {
+    $criterion = array('type' => 'has_credit', 'pass' => TRUE);
+  } else {
+    $criterion = array('type' => 'has_credit', 'pass' => FALSE, 'target' => '/civicrm/contribute/transact?reset=1&id=' . $contrib_id, 'text'=> 'Add Credits');
+  }
+  return $criterion;
+  
+}
+  
+  
+
+
  
 
 
 // ///////////////////////old event handling///////////////////
 
+
+/**
+ * Implementation of hook_form_alter() 
+ */
+ 
+function classy_civicrm_form_event_node_form_alter(&$form, &$form_state, $form_id) {
+  //Add event creation to the node submission event
+  $form['#submit'][] = '_classy_civicrm_event_submit';
+}
 
 /*
  * Implementation of hook_node_delete()

@@ -24,7 +24,8 @@
       hide($content['links']);
       print render($content);
     ?>
-    <?php print $registration; ?>
+    
+    <div class='submit'><?php print l(t($registration['text']), $registration['target'], array ('alt'=>'Register') ); ?></div>
   </div>
 
   <?php

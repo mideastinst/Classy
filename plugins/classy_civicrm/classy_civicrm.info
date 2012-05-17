@@ -3,3 +3,5 @@ description = "Adds CiviCRM API integration for Classy"
 core = 7.x
 version = 7.x-1.0
 package = Classy
+dependencies[] = classy
+dependencies[] = civicrm
