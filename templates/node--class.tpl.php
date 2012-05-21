@@ -24,8 +24,12 @@
       hide($content['links']);
       print render($content);
     ?>
+    <?php if(isset($registration)): ?>
+      <div class='submit'>
+        <?php print l(t($registration['text']), $registration['target'], array ('alt'=>'Register') ); ?>
+      </div>
+    <?php endif; ?>  
     
-    <div class='submit'><?php print l(t($registration['text']), $registration['target'], array ('alt'=>'Register') ); ?></div>
   </div>
 
   <?php
@@ -42,6 +46,7 @@
       <?php print $links; ?>
     </div>
   <?php endif; ?>
+  <?php print render($enroll); ?>
 
   <?php print render($content['comments']); ?>
 

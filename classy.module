@@ -1,5 +1,13 @@
 <?php
 
+
+/*function classy_theme() {
+  $path = drupal_get_path('module', 'classy');
+  $theme_path = $path . '/theme';
+  $inc_path = $path . '/includes';
+}*/
+
+
 /**
  * Implements hook_menu().
  */
@@ -52,8 +60,6 @@ function classy_menu() {
     'file path' => drupal_get_path('module', 'system'),
     'file' => 'system.admin.inc',
   );
-  
-  
   
   return $items;
 }
@@ -198,16 +204,20 @@ function classy_preprocess_node(&$vars) {
       case 'course':
         break;      
       case 'class':
-        
+        $vars['enroll'] = classy_enrollment();
         //Load related course information
         
-        //send course info to approval criteria?
+        
+        
+        //send course info to approval criteria?  - is the user already signed up?
         $criteria = classy_approval_criteria($vars['type']);
         foreach ($criteria as $criterion) {
           if ($criterion['pass'] == FALSE) {
             $vars['registration']['text'] = $criterion['text'];
             $vars['registration']['target'] = $base_url . $criterion['target'];
             break;
+          } else {
+            variable_set('approval', TRUE);
           }
         }
         break;
@@ -226,28 +236,7 @@ function classy_preprocess_node(&$vars) {
  * Create the class list
  */
  
- // uses drupal_write_record($table, &$record, $primary_keys = array())
- 
- /*    // Initializing $record array with values.
-    $record = array (
-    "uid" => $user->uid,
-    "ufname" => $form_state ["values"]["name"],
-    "ufdesc" => $form_state ["values"]["desc"],
-    "ufpath" => $path,
-    "ufstatus" => 1,
-    "ufdate" => $time,
-    );
-    // Inserting $record (data) into the database. Here $table variable contains the name of the table.
-    drupal_write_record ($table, $record);
-    // Getting the last inserted ID. (ufid) is the primary key of the table in my scenario.
-    $return = $record ['ufid'];
-    
-  */  
-  
-//@todo add method for 'approving' registration
-  
- 
-//@todo hook into signup and add check for 'paid' status
+
 
 
 /**
@@ -258,6 +247,7 @@ function classy_preprocess_node(&$vars) {
  *
  */
 function classy_approval_criteria($type) {
+  variable_set('approval', FALSE);
   $criteria = array();
   //user must be logged in
   global $user;
@@ -271,3 +261,41 @@ function classy_approval_criteria($type) {
   $criteria[] = $external_criteria;
   return $criteria;
 }
+
+/** 
+ * Implementation of hook_form_alter
+ */
+function classy_form_signup_form_alter(&$form, &$form_state, $form_id) {
+  //
+  $approval = variable_get('approval');
+  if (isset($approval) && $approval == FALSE) {
+    drupal_set_message('none for you');
+    $form['#access'] = FALSE;
+  }
+  $form['#submit'][] = 'classy_signup_submit';
+  //dpm($form);
+  //add signup role - add 'enrolled' role once signed up
+}
+
+function classy_signup_submit($form, $form_state) {
+
+  global $user;
+  $uid = $user->uid;
+  
+  $table = 'classy_grades';
+  $record = array(
+    'student_id' => $uid,
+    'class_id' => $form['nid']['#value'],
+  );
+  drupal_write_record($table, $record);
+}
+
+//if not using signup
+
+function classy_enrollment() {
+  module_load_include('inc', 'classy', 'includes/classy.enroll');
+  return drupal_get_form('classy_enroll');
+}
+
+
+
