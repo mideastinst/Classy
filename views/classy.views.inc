@@ -58,7 +58,7 @@ function classy_views_data() {
         
       ),  */
     
-    'classy_grade' => array(  // Class instance table
+    'classy_grades' => array(  // Class instance table
        'table' => array(
           'group' => 'Classy',      // Groupname Mydons
              'base' => array(

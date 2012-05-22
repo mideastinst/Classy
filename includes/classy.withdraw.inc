@@ -1,17 +1,18 @@
 <?php
 
-//basic enrollment form
-function classy_enroll($form_state) {
+//basic withdraw form
+function classy_withdraw($form_state) {
   global $user;
+  //dpm($form_state);
   $options = array('1' => t('Enabled'), '0' => t('Disabled'));
-  $form['enroll'] = array(
+  $form['withdraw'] = array(
     '#type' => 'fieldset',
     '#title' => t('Registration Information'),
     '#tree' => TRUE,
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  $form['enroll']['user'] = array(
+  $form['withdraw']['user'] = array(
     '#type' => 'textfield',
     '#title' => t('User Name'),
     '#size' => 30,
@@ -19,7 +20,7 @@ function classy_enroll($form_state) {
     '#default_value' => $user->name,
     '#disabled' => TRUE,
   );
-  $form['enroll']['email'] = array(
+  $form['withdraw']['email'] = array(
     '#type' => 'textfield',
     '#title' => t('Email'),
     '#size' => 30,
@@ -33,10 +34,9 @@ function classy_enroll($form_state) {
   );  //use hidden values for everything?
   $form['nid'] = array( 
     '#type' => 'value',
-    '#value' => arg(1),
+    '#value' => arg(1),  //this breaks if not on node page
   );  //use hidden values for everything?
-  
-  $form['submit'] = array('#type' => 'submit', '#value' => t('Enroll'));
+    
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Withdraw'));
   return $form;
 }
-

@@ -16,39 +16,41 @@ function _classy_civicrm_initialize_api() {
 
 
 function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
-  _classy_civicrm_initialize_api();
-  
-  $uid = $GLOBALS['user']->uid;
-  $civiuser = classy_civicrm_contact($uid);
-  $credit = classy_civicrm_contribution_credits($civiuser, $objectId);  //this is grabbing current contribution
+  //narrow down to contributions of the correct types
+  $contribution_types = array('5','6','7'); //@todo move to configuration var
   
   //check to see if language class contribution type
-  $contribution_types = array('5', '6', '7',); //@todo move to configuration var
-  if (in_array($credit['values'][$objectId]['contribution_type_id'], $contribution_types)) {  //undef index
-  
-    if ($op == 'create' && $objectName == 'Contribution') {
+  if ($objectName == 'Contribution'
+    && in_array($objectRef->contribution_type_id, $contribution_types)) {  
+    _classy_civicrm_initialize_api();
+
+    $uid = $GLOBALS['user']->uid;  //get drupal user
+    $civiuser = $objectRef->contact_id;  //get civi user
+
+    if ($op == 'create') {
       //break into number of contributions based on multiples of amount
     
       //Check to see if this is paid or waiting 
-      $is_paid = ($credit['values'][$objectId]['contribution_status_id'] == 1 ? TRUE : FALSE); 
+      $is_paid = ($objectRef->contribution_status_id == 1 ? TRUE : FALSE); 
       //add language contributions to credits table
       $table = 'classy_civicrm_credits';
       $record = array(
         'drupal_uid' => $uid,
-        'civi_contact_id' => $civiuser['id'],
+        'civi_contact_id' => $civiuser,
         'civi_contribution_id' => $objectId,
+        'civi_contribution_type_id' => $objectRef->contribution_type_id,
         'paid' => $is_paid,
         'used' => 0,
       );
       drupal_write_record($table, $record);
       
-    } elseif ($op == 'edit' && $objectName == 'Contribution') {
-      if ($credit['values'][$objectId]['is_pay_later'] == 1 && $credit['values'][$objectId]['contribution_status_id'] == 1) {
+    } elseif ($op == 'edit') {
+      if ($objectRef->contribution_status_id == 1) {
         //get the old record
         $query = db_select('classy_civicrm_credits', 'c');
         $query
           ->fields('c')
-          ->condition('drupal_uid', $uid,'=')
+          ->condition('civi_contact_id', $civiuser,'=')
           ->condition('civi_contribution_id', $objectId,'=');
         $result = $query->execute()->fetchAssoc();
         
@@ -59,15 +61,29 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
           'paid' => 1,
         );  
         drupal_write_record($table, $record, 'id');
-
-      }        
-    }    
-  }        
-
+      }  elseif ($objectRef->contribution_status_id == 0) {
+        //get the old record
+        $query = db_select('classy_civicrm_credits', 'c');
+        $query
+          ->fields('c')
+          ->condition('civi_contact_id', $civiuser, '=')
+          ->condition('civi_contribution_id', $objectId,'=');
+        $result = $query->execute()->fetchAssoc();
+        
+        $table = 'classy_civicrm_credits';
+        $credit_id = $result['id'];
+        $record = array(
+          'id' => $credit_id,
+          'paid' => 0,
+        );  
+        drupal_write_record($table, $record, 'id');
+      }      
+    }        
+  }
 }
 
 /**
- * CiviCRM get contact 
+ * CiviCRM get contact -- currently not used
  */
 function classy_civicrm_contact($uid = NULL) {
   if (!$uid) {
@@ -85,7 +101,7 @@ function classy_civicrm_contact($uid = NULL) {
 /**
  * CiviCRM get contribution
  *
- * Get class contributions for civi user
+ * Get class contributions for civi user  -- currently useless
  */ 
 
 function classy_civicrm_contribution_credits($civiuser, $contribution_id = NULL){
@@ -126,46 +142,118 @@ function classy_civicrm_contribution_credits($civiuser, $contribution_id = NULL)
 
  
 /**
- * Add 'approved' role / permission to user
+ * Add CiviCRM approval Criterion
  */
  
- // correct time to do this is when someone orders a class credit 
- // how should we handle multiple credits?  can I 'mark' a contribution as used?
-
 function classy_civicrm_approval_criterion($type) {
    $uid = $GLOBALS['user']->uid;
-  //added criteria - entry in 'credits' table
+  //added criteria - entry in 'credits' table   ---contribution type is different from contribution page
   if ($type == 'class') {
-    $contrib_id = '4';
-  } else {
-    $contrib_id = '5';
+    $contrib_type = '5';
+    $contrib_page = '4';
+  } else { //tutoring
+    $contrib_type = '6';
+    $contrib_page = '3';
   }
   
-  //need to add contribution_type_id field to credits table
-  
-  //check credits table for 'paid', !'used' entries for the selected contrib_id
-  $query = db_select('classy_civicrm_credits', 'c');
+  //get the current node (shift away from arg(1) needed) -- checking against this overriding 'withdraw'
+  $query = db_select('classy_enrollment', 'e');
   $query
-    ->fields('c')
-    ->condition('drupal_uid', $uid,'=')
-    //->condition('civi_contribution_type_id', $contrib_id, '=')
-    ->condition('used', 0, '=');
-  $result = $query->execute()->fetchAll();
-    
-  //check for credits
-  $num_credits = count($result);
-  $credit = ($num_credits > 0 ? TRUE : FALSE);
-  
-  if ($credit == TRUE) {
+    ->fields('e')
+    ->condition('student_id', $uid,'=')
+    ->condition('class_id', arg(1), '=')
+    ->condition('state', 1, '=');
+  $result = $query->execute()->fetchAssoc();
+  //dpm($result);
+  if ($result) {
     $criterion = array('type' => 'has_credit', 'pass' => TRUE);
   } else {
-    $criterion = array('type' => 'has_credit', 'pass' => FALSE, 'target' => '/civicrm/contribute/transact?reset=1&id=' . $contrib_id, 'text'=> 'Add Credits');
+    
+    //check credits table for 'paid', !'used' entries for the selected contrib_id
+    $query = db_select('classy_civicrm_credits', 'c');
+    $query
+      ->fields('c')
+      ->condition('drupal_uid', $uid,'=')
+      ->condition('civi_contribution_type_id', $contrib_type, '=')
+      ->condition('paid', 1, '=')
+      ->condition('used', 0, '=');
+    $result = $query->execute()->fetchAll();
+    $num_credits = count($result);
+    $credit = ($num_credits > 0 ? TRUE : FALSE);
+
+    if ($credit == TRUE) {
+      $criterion = array('type' => 'has_credit', 'pass' => TRUE);
+    } else {
+      $criterion = array('type' => 'has_credit', 'pass' => FALSE, 'target' => '/civicrm/contribute/transact?reset=1&id=' . $contrib_page, 'text'=> 'Add Credits');
+    }
+  
   }
   return $criterion;
   
 }
+
+/** 
+ * Implementation of hook_form_alter
+ */
+function classy_civicrm_form_alter(&$form, &$form_state, $form_id) {
+  $enroll_forms = array('classy_enroll', 'classy_withdraw');
+  if (in_array($form['#form_id'], $enroll_forms)){
+    $form['#submit'][] = 'classy_civicrm_enrollment_enroll';
+  }
+}
   
+function classy_civicrm_enrollment_enroll($form, &$form_state) {   
+  global $user;
+  $uid = $user->uid;
   
+   //make sure not already enrolled or withdrawn
+  if ($form['#form_id'] == 'classy_withdraw') {  // this needs to fire - which credit do we restore?
+      //get the user's credit history
+    $query = db_select('classy_civicrm_credits', 'c');
+    $query
+      ->fields('c')
+      ->condition('drupal_uid', $uid,'=')
+      //->condition('civi_contribution_type_id', $contrib_type, '=')  // need to add type check back in
+      ->condition('paid', 1, '=')
+      ->condition('used', 1, '=');
+    $result = $query->execute()->fetchAssoc();
+    $credit_id = $result['id'];
+       
+    
+    $table = 'classy_civicrm_credits';
+    $record = array(
+      'id' => $credit_id,
+      'drupal_uid' => $uid,
+      'used' => 0,
+    );  
+    drupal_write_record($table, $record, 'id');
+  }
+  if ($form['#form_id'] == 'classy_enroll') {
+
+    //if we've gotten here, then we have at least 1 credit to spend ??
+    //get an available credit for the user
+    $query = db_select('classy_civicrm_credits', 'c');
+    $query
+      ->fields('c')
+      ->condition('drupal_uid', $uid,'=')
+      //->condition('civi_contribution_type_id', $contrib_type, '=')  // need to add type check back in
+      ->condition('paid', 1, '=')
+      ->condition('used', 0, '=');
+    $result = $query->execute()->fetchAssoc();
+    $credit_id = $result['id'];
+
+    $table = 'classy_civicrm_credits';
+    $record = array(
+      'id' => $credit_id,
+      'drupal_id' => $uid,
+      'used' => 1,
+    );  
+    drupal_write_record($table, $record, 'id');
+  } 
+}
+
+
+
 
 // ///////////////////////old event handling///////////////////
 
@@ -183,11 +271,12 @@ function classy_civicrm_form_event_node_form_alter(&$form, &$form_state, $form_i
 //////////////migration stuff///////////////////
 /*
 INSERT INTO classy_civicrm_credits 
-  (drupal_uid,civi_contact_id,civi_contribution_id,paid,used)
+  (drupal_uid,civi_contact_id,civi_contribution_id,civi_contribution_type_id,paid,used)
   VALUES
-  (1,1,8,1,0),
-  (1,1,7,0,0),
-  (1,1,6,1,0),
-  (1,1,4,0,0)
+  (1,1,8,4,1,0),
+  (1,1,7,4,0,0),
+  (1,1,6,4,1,0),
+  (1,1,4,4,0,0),
+  (1,1,8,4,1,0);
   
 */

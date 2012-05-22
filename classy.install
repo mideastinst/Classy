@@ -86,8 +86,7 @@ function classy_install() {
   $student = user_role_load_by_name('student'); 
   $student_rid = $student->rid;
   $student_perms = array(
-    'administer blocks' => TRUE, // Grant permission
-    'access dashboard' => FALSE, // Revoke permission
+    'view published content' => TRUE, // ditch this later
   );
   user_role_change_permissions($student_rid, $student_perms);
    
@@ -99,8 +98,7 @@ function classy_install() {
   $approved = user_role_load_by_name('student'); 
   $approved_rid = $approved->rid;
   $approved_perms = array(
-    'administer blocks' => TRUE, // Grant permission
-    'access dashboard' => FALSE, // Revoke permission
+    'view published content' => TRUE,
   );
   user_role_change_permissions($approved_rid, $approved_perms);
     
@@ -112,8 +110,8 @@ function classy_install() {
   $instructor = user_role_load_by_name('instructor'); 
   $instructor_rid = $instructor->rid;
   $instructor_perms = array(
-    'administer blocks' => TRUE, // Grant permission
-    'access dashboard' => FALSE, // Revoke permission
+    'access dashboard' => TRUE, // Revoke permission
+    'view published content' => TRUE,
   );
   user_role_change_permissions($instructor_rid, $instructor_perms);
   
@@ -334,22 +332,23 @@ function _classy_class_installed_fields() {
     'classy_teacher_id' => array(  
       'field_name'  => 'classy_teacher_id',
       'cardinality' => 1,
-      'type'        => 'text',  //check references to see how to make this a tid ref
+      'type'        => 'text',  //make this a tid ref
     ),
     'classy_room_id' => array(  
       'field_name'  => 'classy_room_id',
       'cardinality' => 1,
-      'type'        => 'text',  //check references to see how to make this a tid ref
+      'type'        => 'text',  //make this a tid ref
+    ),
+    'classy_enrolled' => array(  
+      'field_name'  => 'classy_enrolled',
+      'cardinality' => 1,
+      'type'        => 'text', 
     ),
   );
 }
 
 /**
  * Return a structured array defining the instances for this content type.
- *
- * The instance lets Drupal know which widget to use to allow the user to enter
- * data and how to react in different view modes.  We are going to display a
- * page that uses a custom "classy_list" view mode. 
  *
  * This is provided as a function so that it can be used in both hook_install()
  * and hook_uninstall().
@@ -474,6 +473,19 @@ function _classy_class_installed_instances() {
         ),
       ),
     ),
+    'classy_enrolled' => array(
+      'field_name' => 'classy_enrolled',
+      'label'       => $t('Enrolled'),
+      'widget'      => array(
+        'type'    => 'text_textfield',
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_enrolled',
+        ),
+      ),
+    ),
   );
   
 }
@@ -548,6 +560,39 @@ function classy_schema() {
         'description' => 'grade for student enrolled',
         'type' => 'int',
         'length' => '3',
+        'not null' => FALSE
+      ),      
+      
+    ),
+    'primary key' => array('id'),
+  ); 
+  
+  //define table for class enrollment
+  $schema['classy_enrollment'] = array (
+    'description' => 'Class Enrollment',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key for enrollment table',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'class_id' => array(
+        'description' => 'entity id reference to the parent class',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE
+      ),
+      'student_id' => array(
+        'description' => 'uid reference to the student enrolled',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE
+      ),
+      'state' => array(
+        'description' => 'state for student enrolled',
+        'type' => 'int',
+        'length' => '2',
         'not null' => FALSE
       ),      
       

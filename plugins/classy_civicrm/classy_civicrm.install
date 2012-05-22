@@ -29,6 +29,12 @@ function classy_civicrm_schema() {
         'length' => '5',
         'not null' => TRUE,
       ),
+      'civi_contribution_type_id' => array(
+        'description' => 'CiviCRM Contribution Type',
+        'type' => 'int',
+        'length' => '5',
+        'not null' => TRUE,
+      ),
       'paid' => array(
         'description' => 'is the contribution paid',
         'type' => 'int',

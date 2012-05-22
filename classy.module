@@ -1,12 +1,30 @@
 <?php
 
 
-/*function classy_theme() {
-  $path = drupal_get_path('module', 'classy');
-  $theme_path = $path . '/theme';
-  $inc_path = $path . '/includes';
-}*/
+/**
+ * Implements hook_theme_registry_alter()
+ * Want to provide theming tpls here, rather than just in the theme
+ */
+function classy_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'classy');
+  $theme_registry_copy = $theme_registry;       // munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _classy_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
 
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter)
+ */
+function _classy_insert_after_first_element(&$a, $element) {
+  if(is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
 
 /**
  * Implements hook_menu().
@@ -28,7 +46,7 @@ function classy_menu() {
     'weight' => -7,
   );
 
-  $items['admin/classy/students'] = array(  // view
+  /*$items['admin/classy/students'] = array(  // view
     'title' => 'Students',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
@@ -36,7 +54,7 @@ function classy_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/classy_ui.admin.inc',
     'weight' => -20,
-  );
+  );*/
   $items['admin/classy/instructors'] = array(  // view
     'title' => 'Instructors',
     'type' => MENU_LOCAL_TASK,
@@ -44,13 +62,6 @@ function classy_menu() {
     'access arguments' => array('access administration pages'),
     'weight' => -10,
   );  
-  $items['admin/classy/instructors'] = array(  // view
-    'title' => 'Instructors',
-    'type' => MENU_LOCAL_TASK,
-    'page callback' => 'classy_admin_instructors',
-    'access arguments' => array('access administration pages'),
-    'weight' => -10,
-  ); 
   $items['admin/classy/config'] = array(
     'title' => 'Classy Configuration',
     'page callback' => 'system_admin_menu_block_page',
@@ -153,32 +164,6 @@ function classy_views_api() {
     );
 }
 
-
-/**
- * Implements hook_theme_registry_alter()
- * Want to provide theming tpls here, rather than just in the theme
- */
-function classy_theme_registry_alter(&$theme_registry) {
-  $mod_path = drupal_get_path('module', 'classy');
-  $theme_registry_copy = $theme_registry;       // munge on a copy
-  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
-  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
-  $hooks = array('node');
-  foreach ($hooks as $h) {
-    _classy_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
-  }
-}
-
-/**
- * Helper function for re-ordering arrays (needed by theme_registry_alter)
- */
-function _classy_insert_after_first_element(&$a, $element) {
-  if(is_array($a)) {
-    $first_element = array_shift($a);
-    array_unshift($a, $first_element, $element);
-  }
-}
-
 /**
  * Implementation of hook_preprocess_node();
  * 
@@ -192,7 +177,7 @@ function classy_preprocess_node(&$vars) {
   //menu seems to be messed up and not adding active trail via context
   //dpm(context_get());
   //dpm(menu_get_active_trail());
-  
+  global $user;
   global $base_url;
   //global $language;
   if (isset($vars['type'])) {
@@ -204,24 +189,68 @@ function classy_preprocess_node(&$vars) {
       case 'course':
         break;      
       case 'class':
-        $vars['enroll'] = classy_enrollment();
+        
+        $query = db_select('classy_enrollment', 'e'); //currently getting all classes
+        $query
+          ->fields('e', array('class_id'))
+          ->condition('state', 1, '=')
+          ->groupBy('class_id');
+        $result = $query->execute()->fetchAll();
+        
+        //dpm($result);
+        /*foreach ($result as $class) { //update class node to reflect enrollment
+          $table = 'field_data_classy_enrolled';
+          
+          $record = array(
+            'id' => $class['entity_id'],
+            //'classy_enrolled_value' => ,
+          );  
+          //drupal_write_record($table, $record, 'id');
+        }   */  
+        
         //Load related course information
         
+        //@todo - need to check to see if user is already enrolled and skip this if he is
         
-        
-        //send course info to approval criteria?  - is the user already signed up?
-        $criteria = classy_approval_criteria($vars['type']);
-        foreach ($criteria as $criterion) {
-          if ($criterion['pass'] == FALSE) {
-            $vars['registration']['text'] = $criterion['text'];
-            $vars['registration']['target'] = $base_url . $criterion['target'];
-            break;
-          } else {
-            variable_set('approval', TRUE);
+        //check to see if already enrolled - if so give 'unenroll' form
+        $query = db_select('classy_enrollment', 'e');
+        $query
+          ->fields('e')
+          ->condition('student_id', $vars['uid'],'=')
+          ->condition('class_id', $vars['nid'], '=')
+          ->condition('state', 1, '=');  //1 for current, 2 for withdrawn, 3 for completed
+        $result = $query->execute()->fetchAll();
+        $enrolled = count($result);
+        if ($enrolled > 0 ) {
+          variable_set('approval', TRUE);
+          $vars['registration'] = classy_enrollment($user->uid, $vars['nid']);
+        } else {
+          //send course info to approval criteria?  - is the user already signed up?
+          $criteria = classy_approval_criteria($vars['type']);
+          
+          foreach ($criteria as $criterion) {
+            //$criterion['pass'] = TRUE; //debug
+            if ($criterion['pass'] == FALSE) {
+              //$vars['registration']['text'] = $criterion['text'];
+              //$vars['registration']['target'] = $base_url . $criterion['target'];
+              $vars['registration'] = array(
+                'register' => array(
+                  '#markup' => l(t($criterion['text']), $base_url . $criterion['target'], array ('alt'=>'Register') ),
+                  '#prefix' => '<div class="submit">',
+                  '#suffix' => '</div>',
+                ),
+              );
+              break;
+            } else {
+              variable_set('approval', TRUE);
+              //dpm($vars);
+              $vars['registration'] = classy_enrollment($user->uid, $vars['nid']);
+            }
           }
-        }
+        } 
+         
         break;
-	    case 'site_page':
+	    case 'site_page':  //@todo - ax this
 	      unset($vars['content']['links']);
 	      unset($vars['content']['comments']);
         break;
@@ -237,13 +266,10 @@ function classy_preprocess_node(&$vars) {
  */
  
 
-
-
 /**
  * Creates a hook to specify validation permissions
  *
  * Validation criteria have 3 levels - annonymous, authenticated (can't sign up) and authorized - array
- *
  *
  */
 function classy_approval_criteria($type) {
@@ -265,37 +291,148 @@ function classy_approval_criteria($type) {
 /** 
  * Implementation of hook_form_alter
  */
-function classy_form_signup_form_alter(&$form, &$form_state, $form_id) {
-  //
-  $approval = variable_get('approval');
-  if (isset($approval) && $approval == FALSE) {
-    drupal_set_message('none for you');
-    $form['#access'] = FALSE;
+function classy_form_alter(&$form, &$form_state, $form_id) {
+  
+  if ($form['#form_id'] == 'classy_enroll'){
+    $approval = variable_get('approval');
+    if (isset($approval) && $approval == FALSE) {
+      drupal_set_message('none for you');
+    }
+    $form['#submit'][] = 'classy_enrollment_enroll';
+  } elseif ($form['#form_id'] == 'classy_withdraw') {
+    $form['#submit'][] = 'classy_enrollment_enroll';
+     
   }
-  $form['#submit'][] = 'classy_signup_submit';
-  //dpm($form);
+  
+  
+
   //add signup role - add 'enrolled' role once signed up
 }
 
-function classy_signup_submit($form, $form_state) {
 
+function classy_enrollment($uid, $nid) {   //add user, class params
+  //check to see if already enrolled - if so give 'unenroll' form
+  $query = db_select('classy_enrollment', 'e');
+  $query
+    ->fields('e')
+    ->condition('student_id', $uid,'=')
+    ->condition('class_id', $nid, '=')
+    ->condition('state', 1, '=');  //1 for current, 2 for withdrawn, 3 for completed
+  $result = $query->execute()->fetchAll();
+  $enrolled = count($result);
+  $allowed = ($enrolled == 0 ? TRUE : FALSE);
+  
+  //pick the right form to display, if the user is currently enrolled for that class
+  if ($allowed == TRUE) {
+    module_load_include('inc', 'classy', 'includes/classy.enroll');
+    $load_form = 'classy_enroll';
+  } else {
+    module_load_include('inc', 'classy', 'includes/classy.withdraw');
+    $load_form = 'classy_withdraw';
+  }
+  return drupal_get_form($load_form);
+}
+
+function classy_enrollment_validate($form, &$form_state) {
+  if ($form_state['values']['enroll']['user'] == '') {
+    form_set_error('', t('You must have a user name.'));
+  }
+}
+
+function classy_enrollment_enroll($form, &$form_state) {   
+  //make sure not already enrolled or withdrawn
   global $user;
   $uid = $user->uid;
   
-  $table = 'classy_grades';
-  $record = array(
-    'student_id' => $uid,
-    'class_id' => $form['nid']['#value'],
-  );
-  drupal_write_record($table, $record);
+  //get the old record
+  $query = db_select('classy_enrollment', 'e');
+  $query
+    ->fields('e')
+    ->condition('student_id', $uid,'=')
+    ->condition('class_id', $form['nid']['#value'],'=');
+  $result = $query->execute()->fetchAssoc();
+  
+  if ($form['#form_id'] == 'classy_withdraw') {
+    $table = 'classy_enrollment';
+    $enroll_id = $result['id'];
+    $record = array(
+      'id' => $enroll_id,
+      'state' => 2,
+    );  
+    drupal_write_record($table, $record, 'id');
+    
+    $query = db_delete('classy_grades');
+    $query
+      ->condition('student_id', $uid,'=')
+      ->condition('class_id', $form['nid']['#value'],'=');
+    $result = $query->execute();
+    
+    drupal_set_message(t('You are no longer enrolled.'));
+    
+  } elseif ($form['#form_id'] == 'classy_enroll'  && $result) {  //re-enrolling
+    $table = 'classy_enrollment';
+    $enroll_id = $result['id'];
+    $record = array(
+      'id' => $enroll_id,
+      'state' => 1,
+    );  
+    drupal_write_record($table, $record, 'id');
+    
+    //add record to grades table  
+    $table = 'classy_grades';
+    $record = array(
+      'student_id' => $uid,
+      'class_id' => $form['nid']['#value'],
+    );
+    drupal_write_record($table, $record);
+    
+    drupal_set_message(t('You are now enrolled again.'));
+  } else {  
+    //add record to grades table  
+    $table = 'classy_grades';
+    $record = array(
+      'student_id' => $uid,
+      'class_id' => $form['nid']['#value'],
+    );
+    drupal_write_record($table, $record);
+    
+    //add record to classes table
+    $table = 'classy_enrollment';
+    $record = array(
+      'student_id' => $uid,
+      'class_id' => $form['nid']['#value'],
+      'state' => 1,
+    );
+    drupal_write_record($table, $record);
+    drupal_set_message(t('You are now enrolled.'));
+  } 
 }
 
-//if not using signup
-
-function classy_enrollment() {
-  module_load_include('inc', 'classy', 'includes/classy.enroll');
-  return drupal_get_form('classy_enroll');
-}
+/**
+ * Implementation of hook_cron
+ *
+ * Updates counts for enrolled students when cron runs.
+ */
+/*function classy_cron() {
+  //count enrollment for each current class
+  
+  $query = db_select('classy_enrollment', 'e'); //currently getting all classes
+  $query
+    ->fields('e', array('class_id'))
+  $result = $query->execute()->fetchAssoc();
+  foreach ($result as $class) { //update class node to reflect enrollment
+    $table = 'field_data_classy_enrolled';
+    
+    $record = array(
+      'id' => $class['entity_id'],
+      'classy_enrolled_value' => ,
+    );  
+    //drupal_write_record($table, $record, 'id');
+    
+    
+  }
+}  */
+  
 
 
 

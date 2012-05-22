@@ -25,9 +25,7 @@
       print render($content);
     ?>
     <?php if(isset($registration)): ?>
-      <div class='submit'>
-        <?php print l(t($registration['text']), $registration['target'], array ('alt'=>'Register') ); ?>
-      </div>
+      <?php print render($registration); ?>
     <?php endif; ?>  
     
   </div>
@@ -46,7 +44,6 @@
       <?php print $links; ?>
     </div>
   <?php endif; ?>
-  <?php print render($enroll); ?>
 
   <?php print render($content['comments']); ?>
 

@@ -170,6 +170,145 @@ $handler->display->display_options['menu']['context'] = 0;
 
 /* Display: Active */
 $handler = $view->new_display('page', 'Active', 'active');
+$handler->display->display_options['defaults']['style_plugin'] = FALSE;
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title' => 'title',
+  'body' => 'body',
+  'classy_time_id' => 'classy_time_id',
+  'classy_teacher_id' => 'classy_teacher_id',
+  'classy_room_id' => 'classy_room_id',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'body' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'classy_time_id' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'classy_teacher_id' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'classy_room_id' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+$handler->display->display_options['style_options']['override'] = 1;
+$handler->display->display_options['style_options']['sticky'] = 0;
+$handler->display->display_options['style_options']['empty_table'] = 0;
+$handler->display->display_options['defaults']['style_options'] = FALSE;
+$handler->display->display_options['defaults']['row_plugin'] = FALSE;
+$handler->display->display_options['defaults']['row_options'] = FALSE;
+$handler->display->display_options['defaults']['fields'] = FALSE;
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['label'] = '';
+$handler->display->display_options['fields']['title']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['title']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['title']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = 0;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = 0;
+$handler->display->display_options['fields']['title']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['title']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['title']['alter']['html'] = 0;
+$handler->display->display_options['fields']['title']['hide_empty'] = 0;
+$handler->display->display_options['fields']['title']['empty_zero'] = 0;
+$handler->display->display_options['fields']['title']['link_to_node'] = 1;
+/* Field: Content: Time */
+$handler->display->display_options['fields']['classy_time_id']['id'] = 'classy_time_id';
+$handler->display->display_options['fields']['classy_time_id']['table'] = 'field_data_classy_time_id';
+$handler->display->display_options['fields']['classy_time_id']['field'] = 'classy_time_id';
+$handler->display->display_options['fields']['classy_time_id']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['external'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['html'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['hide_empty'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['empty_zero'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['field_api_classes'] = 0;
+/* Field: Content: Teacher */
+$handler->display->display_options['fields']['classy_teacher_id']['id'] = 'classy_teacher_id';
+$handler->display->display_options['fields']['classy_teacher_id']['table'] = 'field_data_classy_teacher_id';
+$handler->display->display_options['fields']['classy_teacher_id']['field'] = 'classy_teacher_id';
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['external'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['alter']['html'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['classy_teacher_id']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['classy_teacher_id']['hide_empty'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['empty_zero'] = 0;
+$handler->display->display_options['fields']['classy_teacher_id']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['classy_teacher_id']['field_api_classes'] = 0;
+/* Field: Content: Room */
+$handler->display->display_options['fields']['classy_room_id']['id'] = 'classy_room_id';
+$handler->display->display_options['fields']['classy_room_id']['table'] = 'field_data_classy_room_id';
+$handler->display->display_options['fields']['classy_room_id']['field'] = 'classy_room_id';
+$handler->display->display_options['fields']['classy_room_id']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['external'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['html'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['hide_empty'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['empty_zero'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['field_api_classes'] = 0;
 $handler->display->display_options['defaults']['filters'] = FALSE;
 /* Filter criterion: Content: Published */
 $handler->display->display_options['filters']['status']['id'] = 'status';
