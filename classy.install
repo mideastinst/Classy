@@ -126,6 +126,11 @@ function classy_install() {
 function _classy_course_installed_fields() {
   $t = get_t();
   return array(
+    'classy_abbrev_id' => array(  
+      'field_name'  => 'classy_abbrev_id',
+      'cardinality' => 1,
+      'type'        => 'text',  
+    ),
     'classy_language_id' => array(  
       'field_name'  => 'classy_language_id',
       'cardinality' => 1,
@@ -170,26 +175,29 @@ function _classy_course_installed_fields() {
         ),
       ),
     ),
-    'classy_abbrev_id' => array(  
-      'field_name'  => 'classy_abbrev_id',
-      'cardinality' => 1,
-      'type'        => 'text',  
-    ),
   );
 }
 
 /**
  * Return a structured array defining the instances for this content type.
  *
- * The instance lets Drupal know which widget to use to allow the user to enter
- * data and how to react in different view modes.  We are going to display a
- * page that uses a custom "classy_list" view mode. 
- * This is provided as a function so that it can be used in both hook_install()
- * and hook_uninstall().
  */
 function _classy_course_installed_instances() {
   $t = get_t();
   return array(
+    'classy_abbrev_id' => array(
+      'field_name' => 'classy_abbrev_id',
+      'label'       => $t('Full Title'),
+      'widget'      => array(
+        'type'    => 'text_textfield',
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_abbrev',
+        ),
+      ),
+    ),
     'classy_language_id' => array(
       'field_name'  => 'classy_language_id',
       'label' => $t('Language'),
@@ -228,19 +236,7 @@ function _classy_course_installed_instances() {
         ),
       ),
     ),
-    'classy_abbrev_id' => array(
-      'field_name' => 'classy_abbrev_id',
-      'label'       => $t('Reference'),
-      'widget'      => array(
-        'type'    => 'text_textfield',
-      ),
-      'display' => array(
-        'classy_list' => array(
-          'label' => 'hidden',
-          'type' => 'classy_abbrev',
-        ),
-      ),
-    ),
+    
   );
 }
 
@@ -329,15 +325,36 @@ function _classy_class_installed_fields() {
         ),
       ),
     ),
-    'classy_teacher_id' => array(  
-      'field_name'  => 'classy_teacher_id',
+    'classy_teacher_id' => array(
+      'field_name' => 'classy_teacher_id',
       'cardinality' => 1,
-      'type'        => 'text',  //make this a tid ref
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'user',
+        //'handler_settings' => array('target_bundles' => array('course')),
+      ),
     ),
     'classy_room_id' => array(  
       'field_name'  => 'classy_room_id',
       'cardinality' => 1,
-      'type'        => 'text',  //make this a tid ref
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),
+          'target_bundles' => array('classy_room'),
+        ),
+      ),
     ),
     'classy_enrolled' => array(  
       'field_name'  => 'classy_enrolled',
@@ -429,7 +446,7 @@ function _classy_class_installed_instances() {
       'entity_type' => 'taxonomy_term',
       'settings' => array(
         'target_type' => 'taxonomy_term',
-        'handler_settings' => array('target_bundles' => array('classy_year')),
+        'handler_settings' => array('target_bundles' => array('classy_time')),
       ),      
       'widget' => array(
         'type' => 'options_select',
@@ -449,9 +466,13 @@ function _classy_class_installed_instances() {
     ),
     'classy_teacher_id' => array(
       'field_name' => 'classy_teacher_id',
-      'label'       => $t('Teacher'),
-      'widget'      => array(
-        'type'    => 'text_textfield',
+      'label' => $t('Teacher'),
+      'entity_type' => 'user',
+      'settings' => array(
+        'target_type' => 'user',
+      ),
+      'widget' => array(
+        'type' => 'options_select',
       ),
       'display' => array(
         'classy_list' => array(
@@ -463,10 +484,21 @@ function _classy_class_installed_instances() {
     'classy_room_id' => array(
       'field_name' => 'classy_room_id',
       'label'       => $t('Room'),
-      'widget'      => array(
-        'type'    => 'text_textfield',
+      'entity_type' => 'taxonomy_term',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_room')),
+      ),      
+      'widget' => array(
+        'type' => 'options_select',
       ),
       'display' => array(
+        'default' => array (
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
+        ),
         'classy_list' => array(
           'label' => 'hidden',
           'type' => 'classy_room',
@@ -616,6 +648,7 @@ function classy_enable() {
   _classy_populate_year_vocab();
   _classy_populate_semester_vocab();
   _classy_populate_time_vocab();
+  _classy_populate_room_vocab();
 }
 
 function  _classy_populate_language_vocab() {
@@ -726,6 +759,24 @@ function  _classy_populate_time_vocab() {
     t('Sat/Sun 1:45p - 3'),
   );
   $vocab = taxonomy_vocabulary_machine_name_load('classy_time'); 
+  classy_save_terms($terms, $vocab->vid); 
+}
+
+function  _classy_populate_room_vocab() {
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'Classy Rooms',
+    'machine_name' => 'classy_room',
+  ));
+
+  $terms = array(
+    t('1'),
+    t('2'),
+    t('3'),
+    t('4'),
+    t('5'),
+    t('6'),
+  );
+  $vocab = taxonomy_vocabulary_machine_name_load('classy_room'); 
   classy_save_terms($terms, $vocab->vid); 
 }
 

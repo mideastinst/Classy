@@ -300,20 +300,20 @@ function classy_enrollment($uid, $nid) {
  * Implementation of hook_form_alter
  */
 function classy_form_alter(&$form, &$form_state, $form_id) {
-
   $enroll_forms = array('classy_enroll', 'classy_withdraw');
   if (in_array($form_id, $enroll_forms)){
     $form['#submit'][] = 'classy_enrollment_enroll';
   }  
   //dpm($form);
   //add signup role - add 'enrolled' role once signed up
+  
 }
 
-function classy_enrollment_enroll($form, &$form_state) {   //@pickup - withdraw isn't getting the right nid
+function classy_enrollment_enroll($form, &$form_state) {   //@pickup - not getting the right nid in the form - processing wrong form when multiple forms on same page
   //make sure not already enrolled or withdrawn
   global $user;
   $uid = $user->uid;
-
+ // dpm($form);
   //check for old record
   $query = db_select('classy_enrollment', 'e');
   $query
@@ -321,8 +321,14 @@ function classy_enrollment_enroll($form, &$form_state) {   //@pickup - withdraw 
     ->condition('student_id', $uid,'=')
     ->condition('class_id', $form['nid']['#value'],'=');
   $result = $query->execute()->fetchAssoc();
-
+  //dpm($result);
+  
+  //$all = $result->fetchAll();
+  //$single = $result->fetchAssoc();
+//dpm($all);
+//dpm($single);
   if ($form['#form_id'] == 'classy_withdraw') {
+    
     $table = 'classy_enrollment';
     $enroll_id = $result['id'];
     $record = array(

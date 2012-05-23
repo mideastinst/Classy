@@ -17,16 +17,6 @@ function classy_student_settings_form($form, &$form_state) {
     //'#default_value' => commerce_default_currency(),
   );
 
-  // Place the enabled currencies checkboxes in a fieldset so the full list
-  // doesn't spam the administrator when viewing the page.
- /* $form['enabled_currencies'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Enabled currencies'),
-    '#description' => t('Only enabled currencies will be visible to users when entering prices. The default currency will always be enabled.'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );*/
-
   $form['#validate'][] = 'classy_student_settings_form_validate';
 
   return system_settings_form($form);
