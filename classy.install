@@ -86,7 +86,7 @@ function classy_install() {
   $student = user_role_load_by_name('student'); 
   $student_rid = $student->rid;
   $student_perms = array(
-    'view published content' => TRUE, // ditch this later
+    //'view published content' => TRUE, // ditch this later
   );
   user_role_change_permissions($student_rid, $student_perms);
    
@@ -98,7 +98,7 @@ function classy_install() {
   $approved = user_role_load_by_name('student'); 
   $approved_rid = $approved->rid;
   $approved_perms = array(
-    'view published content' => TRUE,
+    //'view published content' => TRUE,
   );
   user_role_change_permissions($approved_rid, $approved_perms);
     
@@ -110,8 +110,8 @@ function classy_install() {
   $instructor = user_role_load_by_name('instructor'); 
   $instructor_rid = $instructor->rid;
   $instructor_perms = array(
-    'access dashboard' => TRUE, // Revoke permission
-    'view published content' => TRUE,
+    //'access dashboard' => TRUE, // Revoke permission
+    //'view published content' => TRUE,
   );
   user_role_change_permissions($instructor_rid, $instructor_perms);
   

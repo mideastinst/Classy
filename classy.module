@@ -54,23 +54,7 @@ function classy_menu() {
     'file' => 'system.admin.inc',
     'weight' => -7,
   );
-
-  /*$items['admin/classy/students'] = array(  // view
-    'title' => 'Students',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('classy_student_settings_form'),
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/classy_ui.admin.inc',
-    'weight' => -20,
-  );*/
-  $items['admin/classy/instructors'] = array(  // view
-    'title' => 'Instructors',
-    'type' => MENU_LOCAL_TASK,
-    'page callback' => 'classy_admin_instructors',
-    'access arguments' => array('access administration pages'),
-    'weight' => -10,
-  );  
+ 
   $items['admin/classy/config'] = array(
     'title' => 'Classy Configuration',
     'page callback' => 'system_admin_menu_block_page',
