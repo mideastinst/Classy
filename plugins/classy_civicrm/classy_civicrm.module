@@ -145,8 +145,8 @@ function classy_civicrm_contribution_credits($civiuser, $contribution_id = NULL)
  * Add CiviCRM approval Criterion
  */
  
-function classy_civicrm_approval_criterion($type) {
-   $uid = $GLOBALS['user']->uid;
+function classy_civicrm_approval_criterion($type, $nid, $uid) {
+
   //added criteria - entry in 'credits' table   ---contribution type is different from contribution page
   if ($type == 'class') {
     $contrib_type = '5';
@@ -161,7 +161,7 @@ function classy_civicrm_approval_criterion($type) {
   $query
     ->fields('e')
     ->condition('student_id', $uid,'=')
-    ->condition('class_id', arg(1), '=')
+    ->condition('class_id', $nid, '=')
     ->condition('state', 1, '=');
   $result = $query->execute()->fetchAssoc();
   //dpm($result);
@@ -205,9 +205,8 @@ function classy_civicrm_form_alter(&$form, &$form_state, $form_id) {
 function classy_civicrm_enrollment_enroll($form, &$form_state) {   
   global $user;
   $uid = $user->uid;
-  
    //make sure not already enrolled or withdrawn
-  if ($form['#form_id'] == 'classy_withdraw') {  // this needs to fire - which credit do we restore?
+  if ($form['#form_id'] == 'classy_withdraw') {  
       //get the user's credit history
     $query = db_select('classy_civicrm_credits', 'c');
     $query
@@ -255,17 +254,6 @@ function classy_civicrm_enrollment_enroll($form, &$form_state) {
 
 
 
-// ///////////////////////old event handling///////////////////
-
-
-/**
- * Implementation of hook_form_alter() 
- */
- 
-function classy_civicrm_form_event_node_form_alter(&$form, &$form_state, $form_id) {
-  //Add event creation to the node submission event
-  $form['#submit'][] = '_classy_civicrm_event_submit';
-}
 
 
 //////////////migration stuff///////////////////

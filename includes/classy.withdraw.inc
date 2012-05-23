@@ -1,9 +1,8 @@
 <?php
 
 //basic withdraw form
-function classy_withdraw($form_state) {
+function classy_withdraw($form, &$form_state, $nid) {
   global $user;
-  //dpm($form_state);
   $options = array('1' => t('Enabled'), '0' => t('Disabled'));
   $form['withdraw'] = array(
     '#type' => 'fieldset',
@@ -28,14 +27,14 @@ function classy_withdraw($form_state) {
     '#default_value' => $user->mail,
     '#disabled' => TRUE,
   );  
-  $form['uid'] = array(  //didn't work
+  $form['uid'] = array(  
     '#type' => 'value',
     '#value' => $user->uid,
-  );  //use hidden values for everything?
+  );  
   $form['nid'] = array( 
     '#type' => 'value',
-    '#value' => arg(1),  //this breaks if not on node page
-  );  //use hidden values for everything?
+    '#value' => $nid,
+  );  
     
   $form['submit'] = array('#type' => 'submit', '#value' => t('Withdraw'));
   return $form;

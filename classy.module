@@ -26,6 +26,15 @@ function _classy_insert_after_first_element(&$a, $element) {
   }
 }
 
+function classy_views_api() {
+    return array(
+        'api' => '3.0-alpha1',
+        'path' => drupal_get_path('module','classy'). '/views',
+    );
+}
+
+
+
 /**
  * Implements hook_menu().
  */
@@ -157,12 +166,29 @@ function classy_field_formatter_info() {
 }*/
 
 
-function classy_views_api() {
-    return array(
-        'api' => '3.0-alpha1',
-        'path' => drupal_get_path('module','classy'). '/views',
-    );
+/**
+ * Creates a hook to specify validation permissions
+ *
+ * Validation criteria have 3 levels - annonymous, authenticated (can't sign up) and authorized - array
+ *
+ */
+function classy_approval_criteria($type, $nid, $uid) {
+
+  global $user;
+  $criteria = array();
+  
+  //user must be logged in
+  if ($user->uid) {
+    $criteria[] = array('type'=>'logged_in', 'pass'=>TRUE);  
+  } else {
+    $criteria[] = array('type'=>'logged_in', 'pass'=>FALSE, 'target'=>'/user', 'text' => 'Please Log In',);
+  }
+  //get all criteria from other modules
+  $external_criteria = module_invoke_all('approval_criterion', $type, $nid, $uid);
+  $criteria[] = $external_criteria;
+  return $criteria;
 }
+
 
 /**
  * Implementation of hook_preprocess_node();
@@ -174,22 +200,15 @@ function classy_preprocess_node(&$vars) {
   //Add view mode theme suggestions
   $vars['theme_hook_suggestions'][] = 'node__' . $vars['type'] . '__' . $vars['view_mode'];
 
-  //menu seems to be messed up and not adding active trail via context
-  //dpm(context_get());
-  //dpm(menu_get_active_trail());
   global $user;
   global $base_url;
   //global $language;
   if (isset($vars['type'])) {
     switch ($vars['type']) {
-	    case 'profile':
-	      unset($vars['content']['links']);
-	      unset($vars['content']['comments']);
-	      break;
       case 'course':
         break;      
       case 'class':
-        
+
         $query = db_select('classy_enrollment', 'e'); //currently getting all classes
         $query
           ->fields('e', array('class_id'))
@@ -210,8 +229,6 @@ function classy_preprocess_node(&$vars) {
         
         //Load related course information
         
-        //@todo - need to check to see if user is already enrolled and skip this if he is
-        
         //check to see if already enrolled - if so give 'unenroll' form
         $query = db_select('classy_enrollment', 'e');
         $query
@@ -226,7 +243,7 @@ function classy_preprocess_node(&$vars) {
           $vars['registration'] = classy_enrollment($user->uid, $vars['nid']);
         } else {
           //send course info to approval criteria?  - is the user already signed up?
-          $criteria = classy_approval_criteria($vars['type']);
+          $criteria = classy_approval_criteria($vars['type'], $vars['nid'], $user->uid);
           
           foreach ($criteria as $criterion) {
             //$criterion['pass'] = TRUE; //debug
@@ -243,16 +260,11 @@ function classy_preprocess_node(&$vars) {
               break;
             } else {
               variable_set('approval', TRUE);
-              //dpm($vars);
               $vars['registration'] = classy_enrollment($user->uid, $vars['nid']);
             }
           }
         } 
          
-        break;
-	    case 'site_page':  //@todo - ax this
-	      unset($vars['content']['links']);
-	      unset($vars['content']['comments']);
         break;
       default:
 	      break;
@@ -260,57 +272,7 @@ function classy_preprocess_node(&$vars) {
   }
 }
 
-
-/**
- * Create the class list
- */
- 
-
-/**
- * Creates a hook to specify validation permissions
- *
- * Validation criteria have 3 levels - annonymous, authenticated (can't sign up) and authorized - array
- *
- */
-function classy_approval_criteria($type) {
-  variable_set('approval', FALSE);
-  $criteria = array();
-  //user must be logged in
-  global $user;
-  if ($user->uid) {
-    $criteria[] = array('type'=>'logged_in', 'pass'=>TRUE);  
-  } else {
-    $criteria[] = array('type'=>'logged_in', 'pass'=>FALSE, 'target'=>'/user', 'text' => 'Please Log In',);
-  }
-  //get all criteria from other modules
-  $external_criteria = module_invoke_all('approval_criterion', $type);
-  $criteria[] = $external_criteria;
-  return $criteria;
-}
-
-/** 
- * Implementation of hook_form_alter
- */
-function classy_form_alter(&$form, &$form_state, $form_id) {
-  
-  if ($form['#form_id'] == 'classy_enroll'){
-    $approval = variable_get('approval');
-    if (isset($approval) && $approval == FALSE) {
-      drupal_set_message('none for you');
-    }
-    $form['#submit'][] = 'classy_enrollment_enroll';
-  } elseif ($form['#form_id'] == 'classy_withdraw') {
-    $form['#submit'][] = 'classy_enrollment_enroll';
-     
-  }
-  
-  
-
-  //add signup role - add 'enrolled' role once signed up
-}
-
-
-function classy_enrollment($uid, $nid) {   //add user, class params
+function classy_enrollment($uid, $nid) {   
   //check to see if already enrolled - if so give 'unenroll' form
   $query = db_select('classy_enrollment', 'e');
   $query
@@ -330,28 +292,36 @@ function classy_enrollment($uid, $nid) {   //add user, class params
     module_load_include('inc', 'classy', 'includes/classy.withdraw');
     $load_form = 'classy_withdraw';
   }
-  return drupal_get_form($load_form);
+ 
+  return drupal_get_form($load_form, $nid);
 }
 
-function classy_enrollment_validate($form, &$form_state) {
-  if ($form_state['values']['enroll']['user'] == '') {
-    form_set_error('', t('You must have a user name.'));
-  }
+/** 
+ * Implementation of hook_form_alter
+ */
+function classy_form_alter(&$form, &$form_state, $form_id) {
+
+  $enroll_forms = array('classy_enroll', 'classy_withdraw');
+  if (in_array($form_id, $enroll_forms)){
+    $form['#submit'][] = 'classy_enrollment_enroll';
+  }  
+  //dpm($form);
+  //add signup role - add 'enrolled' role once signed up
 }
 
-function classy_enrollment_enroll($form, &$form_state) {   
+function classy_enrollment_enroll($form, &$form_state) {   //@pickup - withdraw isn't getting the right nid
   //make sure not already enrolled or withdrawn
   global $user;
   $uid = $user->uid;
-  
-  //get the old record
+
+  //check for old record
   $query = db_select('classy_enrollment', 'e');
   $query
     ->fields('e')
     ->condition('student_id', $uid,'=')
     ->condition('class_id', $form['nid']['#value'],'=');
   $result = $query->execute()->fetchAssoc();
-  
+
   if ($form['#form_id'] == 'classy_withdraw') {
     $table = 'classy_enrollment';
     $enroll_id = $result['id'];
@@ -370,6 +340,7 @@ function classy_enrollment_enroll($form, &$form_state) {
     drupal_set_message(t('You are no longer enrolled.'));
     
   } elseif ($form['#form_id'] == 'classy_enroll'  && $result) {  //re-enrolling
+    
     $table = 'classy_enrollment';
     $enroll_id = $result['id'];
     $record = array(
@@ -407,6 +378,18 @@ function classy_enrollment_enroll($form, &$form_state) {
     drupal_set_message(t('You are now enrolled.'));
   } 
 }
+
+
+
+
+
+function classy_enrollment_validate($form, &$form_state) {
+  if ($form_state['values']['enroll']['user'] == '') {
+    form_set_error('', t('You must have a user name.'));
+  }
+}
+
+
 
 /**
  * Implementation of hook_cron

@@ -1,7 +1,7 @@
 <?php
 
 //basic enrollment form
-function classy_enroll($form_state) {
+function classy_enroll($form, &$form_state, $nid) {
   global $user;
   $options = array('1' => t('Enabled'), '0' => t('Disabled'));
   $form['enroll'] = array(
@@ -27,14 +27,14 @@ function classy_enroll($form_state) {
     '#default_value' => $user->mail,
     '#disabled' => TRUE,
   );  
-  $form['uid'] = array(  //didn't work
+  $form['uid'] = array(  
     '#type' => 'value',
     '#value' => $user->uid,
-  );  //use hidden values for everything?
+  ); 
   $form['nid'] = array( 
     '#type' => 'value',
-    '#value' => arg(1),
-  );  //use hidden values for everything?
+    '#value' => $nid,
+  );  
   
   $form['submit'] = array('#type' => 'submit', '#value' => t('Enroll'));
   return $form;
