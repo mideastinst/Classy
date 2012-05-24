@@ -215,13 +215,21 @@ $handler->display->display_options['tab_options']['weight'] = '0';
 $handler = $view->new_display('page', 'Class', 'classlist');
 $handler->display->display_options['defaults']['title'] = FALSE;
 $handler->display->display_options['title'] = 'Class Enrollment';
+$handler->display->display_options['defaults']['header'] = FALSE;
+/* Header: Global: View area */
+$handler->display->display_options['header']['view']['id'] = 'view';
+$handler->display->display_options['header']['view']['table'] = 'views';
+$handler->display->display_options['header']['view']['field'] = 'view';
+$handler->display->display_options['header']['view']['empty'] = FALSE;
+$handler->display->display_options['header']['view']['view_to_insert'] = 'classes:information';
+$handler->display->display_options['header']['view']['inherit_arguments'] = 1;
 $handler->display->display_options['defaults']['empty'] = FALSE;
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['area']['id'] = 'area';
 $handler->display->display_options['empty']['area']['table'] = 'views';
 $handler->display->display_options['empty']['area']['field'] = 'area';
 $handler->display->display_options['empty']['area']['empty'] = FALSE;
-$handler->display->display_options['empty']['area']['content'] = 'Please return to the class list page';
+$handler->display->display_options['empty']['area']['content'] = 'There are no students enrolled for this class.';
 $handler->display->display_options['empty']['area']['format'] = 'plain_text';
 $handler->display->display_options['empty']['area']['tokenize'] = 0;
 $handler->display->display_options['defaults']['fields'] = FALSE;

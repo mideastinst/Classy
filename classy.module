@@ -190,6 +190,18 @@ function classy_preprocess_node(&$vars) {
   if (isset($vars['type'])) {
     switch ($vars['type']) {
       case 'course':
+        
+        //add view displaying list of current classes
+        $block = module_invoke('views', 'block_view', 'classes-by_course');
+        //$view = views_get_view('classes');
+        //$view->set_display('by_course');
+        
+        //$view = views_embed_view('classes', $display_id = 'by_course');
+        //dpm($block);
+        
+        
+        $vars['class_list'] = $block['content'];
+        
         break;      
       case 'class':
 
@@ -212,7 +224,7 @@ function classy_preprocess_node(&$vars) {
         }   */  
         
         //Load related course information
-        
+        //@todo - should this be a block, rather than dropped here?  that gives the option to place it using context.
         //check to see if already enrolled - if so give 'unenroll' form
         $query = db_select('classy_enrollment', 'e');
         $query

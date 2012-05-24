@@ -1,0 +1,6 @@
+name = "Classy Tutoring"
+description = "Adds tutoring scheduling to Classy"
+core = 7.x
+version = 7.x-1.0
+package = Classy
+dependencies[] = classy

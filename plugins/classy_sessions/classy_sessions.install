@@ -1,0 +1,327 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_install().
+ */
+function classy_tutoring_install() {
+  $t = get_t();
+
+  // Define the Course node type.
+  $course = array(
+    'type' => 'session',
+    'name' => $t('Tutoring Session'),
+    'base' => 'node_content',
+    'description' => $t('Create a Tutoring session.'),
+    'body_label' => $t('Notes')
+  );
+
+  // http://api.drupal.org/api/function/node_type_set_defaults/7
+  $content_type = node_type_set_defaults($session);
+  node_add_body_field($content_type);
+
+  // Save the content type
+  node_type_save($content_type);
+
+  $body_instance = field_info_instance('node', 'notes', 'session');
+  field_update_instance($body_instance);
+
+  // Create all the fields we are adding to our content type.
+  // http://api.drupal.org/api/function/field_create_field/7
+  foreach (_classy_session_installed_fields() as $field) {
+    field_create_field($field);
+  }
+
+  // Create all the instances for our fields.
+  // http://api.drupal.org/api/function/field_create_instance/7
+  foreach (_classy_session_installed_instances() as $instance) {
+    $instance['entity_type'] = 'node';
+    $instance['bundle'] = $course['type'];
+    field_create_instance($instance);
+  }
+  
+}
+
+/**
+ * Return a structured array defining the fields created by this content type.
+ *
+ * This is packaged in a function so it can be used in both
+ * classy_install() and classy_uninstall().
+ */
+function _classy_class_installed_fields() {
+  $t = get_t();
+  return array(
+    'classy_course_id' => array(
+      'field_name' => 'classy_course_id',
+      'cardinality' => 1,
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'node',
+        'handler_settings' => array('target_bundles' => array('course')),
+      ),
+    ),
+    'classy_year_id' => array(  
+      'field_name'  => 'classy_year_id',
+      'cardinality' => 1,
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),
+          'target_bundles' => array('classy_year'),
+        ),
+      ),
+    ),
+    'classy_semester_id' => array(  
+      'field_name'  => 'classy_semester_id',
+      'cardinality' => 1,
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),        
+          'target_bundles' => array('classy_semester'),
+        ),
+      ),
+    ),
+    'classy_time_id' => array(  
+      'field_name'  => 'classy_time_id',
+      'cardinality' => 1,
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),
+          'target_bundles' => array('classy_time'),
+        ),
+      ),
+    ),
+    'classy_teacher_id' => array(
+      'field_name' => 'classy_teacher_id',
+      'cardinality' => 1,
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'user',
+        //'handler_settings' => array('target_bundles' => array('course')),
+      ),
+    ),
+    'classy_room_id' => array(  
+      'field_name'  => 'classy_room_id',
+      'cardinality' => 1,
+      'type'        => 'entityreference',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array(
+          'behaviors' => array(
+            'views-select-list' => array(
+              'status' => 1,
+            ),
+          ),
+          'sort' => array(
+            'direction' => 'ASC',
+            'field' => 'none',
+            'property' => 'tid',
+            'type' => 'none',
+          ),
+          'target_bundles' => array('classy_room'),
+        ),
+      ),
+    ),
+    'classy_enrolled' => array(  
+      'field_name'  => 'classy_enrolled',
+      'cardinality' => 1,
+      'type'        => 'text', 
+    ),
+  );
+}
+
+/**
+ * Return a structured array defining the instances for this content type.
+ *
+ * This is provided as a function so that it can be used in both hook_install()
+ * and hook_uninstall().
+ */
+function _classy_class_installed_instances() {
+  $t = get_t();
+  return array(
+    'classy_course_id' => array(
+      'field_name' => 'classy_course_id',
+      'label' => $t('Course'),
+      'entity_type' => 'node',
+      'settings' => array(
+        'target_type' => 'node',
+        'handler_settings' => array('target_bundles' => array('course')),
+      ),
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_courses',
+        ),
+      ),
+    ),
+    'classy_year_id' => array(
+      'field_name'  => 'classy_year_id',
+      'label' => $t('Year'),
+      'entity_type' => 'taxonomy_term',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_year')),
+      ),      
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+
+      'display' => array(
+        'default' => array (
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_years',
+        ),
+      ),
+    ),
+    'classy_semester_id' => array(
+      'field_name' => 'classy_semester_id',
+      'label'       => $t('Semester'),
+      'entity_type' => 'taxonomy_term',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_semester')),
+      ),      
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+      'display' => array(
+        'default' => array (
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_semester',
+        ),
+      ),
+    ),
+    'classy_time_id' => array(
+      'field_name' => 'classy_time_id',
+      'label'       => $t('Time'),
+      'entity_type' => 'taxonomy_term',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_time')),
+      ),      
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+      'display' => array(
+        'default' => array (
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_time',
+        ),
+      ),
+    ),
+    'classy_teacher_id' => array(
+      'field_name' => 'classy_teacher_id',
+      'label' => $t('Teacher'),
+      'entity_type' => 'user',
+      'settings' => array(
+        'target_type' => 'user',
+      ),
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_teacher',
+        ),
+      ),
+    ),
+    'classy_room_id' => array(
+      'field_name' => 'classy_room_id',
+      'label'       => $t('Room'),
+      'entity_type' => 'taxonomy_term',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+        'handler_settings' => array('target_bundles' => array('classy_room')),
+      ),      
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+      'display' => array(
+        'default' => array (
+          'type' => 'entityreference_label',
+          'settings' => array(
+            'link' => TRUE,
+          ),
+        ),
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_room',
+        ),
+      ),
+    ),
+    'classy_enrolled' => array(
+      'field_name' => 'classy_enrolled',
+      'label'       => $t('Enrolled'),
+      'widget'      => array(
+        'type'    => 'text_textfield',
+      ),
+      'display' => array(
+        'classy_list' => array(
+          'label' => 'hidden',
+          'type' => 'classy_enrolled',
+        ),
+      ),
+    ),
+  );
+  
+}
