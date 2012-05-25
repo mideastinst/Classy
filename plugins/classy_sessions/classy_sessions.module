@@ -1,2 +1,108 @@
 <?php
+/**
+ * @file
+ * Code for the Classy Sessions feature.
+ */
 
+include_once 'classy_sessions.features.inc';
+
+/**
+ * Integration with Classy_CiviCRM
+ */
+ 
+ 
+/**
+ * Implementation of hook_menu()
+ */
+ 
+function classy_sessions_menu() {
+  $items['admin/classy/tutoring'] = array(
+    'title' => 'Tutoring',
+    //'page callback' => 'system_admin_menu_block_page',
+    'page callback' => 'classy_sessions_admin',
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 50,
+    //'file path' => drupal_get_path('module', 'system'),
+    //'file' => 'system.admin.inc',
+  );
+  
+  return $items;
+}
+
+function classy_sessions_admin() {
+  global $base_url;
+  $output = array(
+    '#prefix' => '<div class="left clearfix"><div class="admin-panel"><h3>' . t('Payments') . '</h3><div class="body">',
+    'group' => array(
+      '#type' => 'markup',
+      '#markup' => l(t('Student Payments'), $base_url . '/admin/classy/tutoring/payments' ),
+    ),
+    '#suffix' => '</div></div></div>',
+  );
+  
+  //create and add a view here? 
+  
+  
+  return drupal_render($output);
+}
+
+/** 
+ * Implementation of hook_form_alter
+ */
+function classy_sessions_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#form_id'] == 'classy_civicrm_config') {
+    $types = variable_get('classy_civicrm_type', array());
+    $form['classy_civicrm_type']['session'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Tutoring Type'),
+      '#default_value' => $types['session'],
+      '#size' => 2,
+      '#maxlength' => 2,
+      '#description' => t("The CiviCRM Contribution Type ID for tutoring sessions."),
+      '#required' => TRUE,
+    );
+  }
+}
+
+
+
+
+function classy_sessions_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
+  global $user;
+  
+  //get the session civicrm type
+  $types = variable_get('classy_civicrm_type');
+  $session_type_id = $types['session'];
+
+  if ($objectName == 'Contribution' && $objectRef->contribution_type_id == $session_type_id) {
+    dpm($objectRef);
+    //grab the price that it's supposed to be and run this multiple times
+    
+    _classy_civicrm_initialize_api();
+    
+    //get the price per item for the contribution type @pickup
+    $yar = $objectRef->contribution_type_id;
+    
+    $total = $objectRef['total_amount'];
+    
+    
+    
+    $node = new stdClass();
+    $node->title = "Pick a title";
+    $node->type = "session";
+    $node->language = LANGUAGE_NONE; // Or e.g. 'en' if locale is enabled
+    $node->uid = $user->uid; 
+    $node->status = 1; //(1 or 0): published or not
+    $node->promote = 0; //(1 or 0): promoted to front page
+    $node->comment = 1; //2 = comments on, 1 = comments off
+    
+    // Entity reference field
+    $node->field_student[$node->language][]['target_id'] = $user->uid;
+    $node->field_student[$node->language][]['target_type'] = 'user'; 
+
+    $node = node_submit($node); // Prepare node for saving
+    node_save($node);
+    drupal_set_message( "Session with id " . $node->nid . " created!\n");
+  }
+}

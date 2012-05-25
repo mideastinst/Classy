@@ -2,6 +2,53 @@
 
 //can I shift $params to a generic set for the user, rather than pushing collection into each function?
 
+function classy_civicrm_menu() {
+  $items = array();
+  $items['admin/config/classy/civicrm'] = array(
+    'title' => 'CiviCRM integration settings',
+    'description' => 'Configure Classy to use CiviCRM',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('classy_civicrm_config'),
+    'access arguments' => array('administer'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+
+  return $items;
+}
+
+function classy_civicrm_config() {
+  $form = array();
+  $form['#tree'] = TRUE;
+  $form['classy_civicrm_type'] = array(
+    '#title' => t('CiviCRM Contribution Types'),
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+  );
+  $types = variable_get('classy_civicrm_type', array());
+  $form['classy_civicrm_type']['regular'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Regular Class Type'),
+    '#default_value' => $types['regular'],
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#description' => t("The CiviCRM Contribution Type ID for regular classes."),
+    '#required' => TRUE,
+  );
+  $form['classy_civicrm_type']['special'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Special Class Type'),
+    '#default_value' => $types['special'],
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#description' => t("The CiviCRM Contribution Type ID for special classes."),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+
+
 /** 
  * Aggregates all calls to the CiviCRM API
  */
@@ -16,15 +63,21 @@ function _classy_civicrm_initialize_api() {
 
 
 function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
+  global $user;
+  
   //narrow down to contributions of the correct types
-  $contribution_types = array('5','6','7'); //@todo move to configuration var
+  $contribution_types = array();
+  $types = variable_get('classy_civicrm_type');
+  foreach ($types as $type) {
+    $contribution_types[] = $type;
+  }
   
   //check to see if language class contribution type
   if ($objectName == 'Contribution'
     && in_array($objectRef->contribution_type_id, $contribution_types)) {  
     _classy_civicrm_initialize_api();
 
-    $uid = $GLOBALS['user']->uid;  //get drupal user
+    //$uid = $GLOBALS['user']->uid;  //get drupal user
     $civiuser = $objectRef->contact_id;  //get civi user
 
     if ($op == 'create') {
@@ -35,7 +88,7 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
       //add language contributions to credits table
       $table = 'classy_civicrm_credits';
       $record = array(
-        'drupal_uid' => $uid,
+        'drupal_uid' => $user->uid,
         'civi_contact_id' => $civiuser,
         'civi_contribution_id' => $objectId,
         'civi_contribution_type_id' => $objectRef->contribution_type_id,
