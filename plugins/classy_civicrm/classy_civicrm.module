@@ -75,29 +75,19 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
   //check to see if language class contribution type
   if ($objectName == 'Contribution'
     && in_array($objectRef->contribution_type_id, $contribution_types)) {  
+    
     _classy_civicrm_initialize_api();
 
     //$uid = $GLOBALS['user']->uid;  //get drupal user
     $civiuser = $objectRef->contact_id;  //get civi user
 
     if ($op == 'create') {
-      //break into number of contributions based on multiples of amount
-    
-      //Check to see if this is paid or waiting 
+      //Check to see if this is paid or waiting  
       $is_paid = ($objectRef->contribution_status_id == 1 ? TRUE : FALSE); 
-      //add language contributions to credits table
-      $table = 'classy_civicrm_credits';
-      $record = array(
-        'drupal_uid' => $user->uid,
-        'civi_contact_id' => $civiuser,
-        'civi_contribution_id' => $objectId,
-        'civi_contribution_type_id' => $objectRef->contribution_type_id,
-        'paid' => $is_paid,
-        'used' => 0,
-      );
-      drupal_write_record($table, $record);
-      
+      $added = _classy_civicrm_record_credit($user, $civiuser, $objectId, $objectRef, $is_paid);
+            
     } elseif ($op == 'edit') {
+      //check if this edit is updating the payment status
       if ($objectRef->contribution_status_id == 1) {
         //get the old record
         $query = db_select('classy_civicrm_credits', 'c');
@@ -107,6 +97,7 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
           ->condition('civi_contribution_id', $objectId,'=');
         $result = $query->execute()->fetchAssoc();
         
+        //update the credits table, mark as paid
         $table = 'classy_civicrm_credits';
         $credit_id = $result['id'];
         $record = array(
@@ -114,7 +105,7 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
           'paid' => 1,
         );  
         drupal_write_record($table, $record, 'id');
-      }  elseif ($objectRef->contribution_status_id == 0) {
+      }  elseif ($objectRef->contribution_status_id == 0) {  //no longer paid (e.g. cancelled)
         //get the old record
         $query = db_select('classy_civicrm_credits', 'c');
         $query
@@ -133,7 +124,55 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
       }      
     }        
   }
+  
+  //if there are multiple purchases they show up as one lump sum and then an insert into the 'civicrm_line_item' table
+  if ($objectName == 'LineItem') {
+    //&& $objectRef->entity_table == 'civicrm_contribution') { 
+    //@todo need to add check to reduce to only classy contributions    
+    dpm($objectRef);
+    _classy_civicrm_initialize_api();
+    //@todo eventually might want to see if paid
+    
+    //only needed if qty is multiple - single has already been added 
+    if ((int)$objectRef->qty > 1) {
+      //get contribution record using the entity_id - we need to know what type it is
+      $contribution = civicrm_api('contribution', 'get', array('version'=>3, 'id'=>$objectId));
+      dpm($contribution);
+      $c = 1;
+      while ($c < $objectRef->qty) {
+        //_classy_civicrm_record_credit($user, $civiuser, $contribution_id, $contribution, 1){
+        $c++;
+      }
+      
+      //basically run the previous stuff again
+    
+      //create a credit record for each qty
+    
+    }
+    
+  }
 }
+
+function _classy_civicrm_record_credit($user, $civiuser, $objectId, $objectRef, $is_paid){
+  //add language contributions to credits table
+  $table = 'classy_civicrm_credits';
+  $record = array(
+    'drupal_uid' => $user->uid,
+    'civi_contact_id' => $civiuser,
+    'civi_contribution_id' => $objectId,
+    'civi_contribution_type_id' => $objectRef->contribution_type_id,
+    'paid' => $is_paid,
+    'used' => 0,
+  );
+  drupal_write_record($table, $record);
+
+
+}
+
+
+
+
+
 
 /**
  * CiviCRM get contact -- currently not used

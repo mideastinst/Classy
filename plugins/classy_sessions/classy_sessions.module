@@ -47,6 +47,15 @@ function classy_sessions_admin() {
   return drupal_render($output);
 }
 
+function _classy_sessions_initialize_api() {
+  $civi_drupal_path = drupal_get_path('module','civicrm');
+  $civi_api_path = strstr($civi_drupal_path, 'drupal', true); 
+  $civi_api_path .= '/api/api.php';  //@todo add custom directory look, also local
+  civicrm_initialize();
+  require_once $civi_api_path;
+} 
+
+
 /** 
  * Implementation of hook_form_alter
  */
@@ -69,25 +78,36 @@ function classy_sessions_form_alter(&$form, &$form_state, $form_id) {
 
 
 function classy_sessions_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
+/*
   global $user;
-  
+  dpm($objectName);
   //get the session civicrm type
   $types = variable_get('classy_civicrm_type');
   $session_type_id = $types['session'];
-
-  if ($objectName == 'Contribution' && $objectRef->contribution_type_id == $session_type_id) {
-    dpm($objectRef);
+  
+  if ($objectName == 'LineItem' && $objectRef->entity_table == 'civicrm_contribution') {
+    //@todo need to add check to restrict to correct types - session only
+    //dpm($objectRef);
+    //dpm($objectId);
+    _classy_sessions_initialize_api();
+    
+    $line_item = civicrm_api('line_item' , 'get', array('version' => 3, 'entity_id' => $objectId));
+    dpm($line_item);
     //grab the price that it's supposed to be and run this multiple times
     
-    _classy_civicrm_initialize_api();
+    //check the civicrm_line_item table using the objectId 
+    
+    
+    
     
     //get the price per item for the contribution type @pickup
+    /*
     $yar = $objectRef->contribution_type_id;
     
     $total = $objectRef['total_amount'];
+    */
     
-    
-    
+    /*
     $node = new stdClass();
     $node->title = "Pick a title";
     $node->type = "session";
@@ -103,6 +123,6 @@ function classy_sessions_civicrm_post( $op, $objectName, $objectId, &$objectRef 
 
     $node = node_submit($node); // Prepare node for saving
     node_save($node);
-    drupal_set_message( "Session with id " . $node->nid . " created!\n");
-  }
+    drupal_set_message( "Session with id " . $node->nid . " created!\n");*/
+  //} 
 }

@@ -39,34 +39,55 @@ function classy_views_api() {
  * Implements hook_menu().
  */
 function classy_menu() {
-  $items['examples/classy'] = array(
+  /*$items['examples/classy'] = array(
     'page callback' => 'classy_page',
     'access arguments' => array('access content'),
     'title' => 'Classy',
-  );
+  );*/
 
   $items['admin/classy'] = array(
     'title' => 'ClassySIS',
-    'description' => 'Administer the Class Registration System.',
-    'page callback' => 'system_admin_menu_block_page',
+    'description' => 'Class Registration System.',
+    //'page callback' => 'system_admin_menu_block_page',
+    'page callback' => 'classy_dashboard',
     'access arguments' => array('access administration pages'),
     'file path' => drupal_get_path('module', 'system'),
     'file' => 'system.admin.inc',
     'weight' => -7,
   );
- 
-  $items['admin/classy/config'] = array(
-    'title' => 'Classy Configuration',
+  $items['admin/config/classy'] = array(
+    'title' => 'ClassySIS',
+    'description' => 'Administer the Class Registration System.',
+    'page callback' => 'system_admin_menu_block_page',
+    //'page callback' => 'classy_admin_dashboard',
+    'access arguments' => array('access administration pages'),
+    'file path' => drupal_get_path('module', 'system'),
+    'file' => 'system.admin.inc',
+    'weight' => -7,
+  );
+   
+  $items['admin/config/classy/config'] = array(
+    'title' => 'Configuration',
     'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('access administration pages'),
     'type' => MENU_LOCAL_TASK,
-    'weight' => 50,
+    'weight' => 10,
     'file path' => drupal_get_path('module', 'system'),
     'file' => 'system.admin.inc',
   );
   
   return $items;
 }
+
+
+
+
+function classy_dashboard(){
+  $dashboard = "Please select an option from the available tabs";
+  
+  return $dashboard;
+}
+
 
 /**
  * Custom callback that builds our content and returns it to the browser. @todo replace with view
@@ -95,10 +116,6 @@ function classy_page() {
   }
 
   return $build;
-}
-
-function classy_admin_instructors() {
-  return 'This will be the instructors area';
 }
 
 /**
