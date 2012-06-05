@@ -18,13 +18,10 @@ include_once 'classy_sessions.features.inc';
 function classy_sessions_menu() {
   $items['admin/classy/tutoring'] = array(
     'title' => 'Tutoring',
-    //'page callback' => 'system_admin_menu_block_page',
     'page callback' => 'classy_sessions_admin',
     'access arguments' => array('access administration pages'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 50,
-    //'file path' => drupal_get_path('module', 'system'),
-    //'file' => 'system.admin.inc',
   );
   
   return $items;
@@ -74,55 +71,127 @@ function classy_sessions_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+/**
+ * Implementation of hook_node_presave()
+ */
+
+function classy_sessions_node_presave($node){
+  dpm($node);
+  if ($node->type == 'session') {
+    //uid comes from the student ref field
+    $uid = $node->field_student[$node->language][0]['target_id'];
+    
+    //get the session civicrm type
+    $types = variable_get('classy_civicrm_type');
+    $session_type_id = $types['session'];
+    
+    //session has been marked as used
+    if ($node->field_used[$node->language][0]['value'] == 1
+      && $node->original->field_used[$node->language][0]['value'] == 0) {
+      
+      //modify a credit and mark as used
+      //get an available credit for the user
+      $query = db_select('classy_civicrm_credits', 'c');
+      $query
+        ->fields('c')
+        ->condition('drupal_uid', $uid,'=')
+        ->condition('civi_contribution_type_id', $session_type_id, '=')
+        ->condition('paid', 1, '=')
+        ->condition('used', 0, '=');
+      $result = $query->execute()->fetchAssoc();
+      $credit_id = $result['id'];
+
+      $table = 'classy_civicrm_credits';
+      $record = array(
+        'id' => $credit_id,
+        'drupal_id' => $uid,
+        'used' => 1,
+      );  
+      drupal_write_record($table, $record, 'id');
+    
+    } elseif ($node->field_used[$node->language][0]['value'] == 0  //session has been marked as unused (refunded)
+      && $node->original->field_used[$node->language][0]['value'] == 1) {
+      
+      //mark a credit as unused
+      //get an available credit for the user
+      $query = db_select('classy_civicrm_credits', 'c');
+      $query
+        ->fields('c')
+        ->condition('drupal_uid', $uid,'=')
+        ->condition('civi_contribution_type_id', $session_type_id, '=')
+        ->condition('paid', 1, '=')
+        ->condition('used', 1, '=');
+      $result = $query->execute()->fetchAssoc();
+      $credit_id = $result['id'];
+
+      $table = 'classy_civicrm_credits';
+      $record = array(
+        'id' => $credit_id,
+        'drupal_id' => $uid,
+        'used' => 0,
+      );  
+      drupal_write_record($table, $record, 'id');
+      
+      
+    }
+  }
+}
 
 
+//probably want to move this to not a lineitem bit but only purchase creation
+
+
+/**
+ * Implementation of hook_civicrm_post()
+ *
+ * Creates an unscheduled session node for each session credit paid for
+ * classy_civicrm creates a credit record for each qty purchased - sessions will always have a line item entry
+ */
 
 function classy_sessions_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
-/*
   global $user;
-  dpm($objectName);
+
   //get the session civicrm type
   $types = variable_get('classy_civicrm_type');
   $session_type_id = $types['session'];
   
-  if ($objectName == 'LineItem' && $objectRef->entity_table == 'civicrm_contribution') {
-    //@todo need to add check to restrict to correct types - session only
-    //dpm($objectRef);
-    //dpm($objectId);
-    _classy_sessions_initialize_api();
-    
-    $line_item = civicrm_api('line_item' , 'get', array('version' => 3, 'entity_id' => $objectId));
-    dpm($line_item);
-    //grab the price that it's supposed to be and run this multiple times
-    
-    //check the civicrm_line_item table using the objectId 
-    
-    
-    
-    
-    //get the price per item for the contribution type @pickup
-    /*
-    $yar = $objectRef->contribution_type_id;
-    
-    $total = $objectRef['total_amount'];
-    */
-    
-    /*
-    $node = new stdClass();
-    $node->title = "Pick a title";
-    $node->type = "session";
-    $node->language = LANGUAGE_NONE; // Or e.g. 'en' if locale is enabled
-    $node->uid = $user->uid; 
-    $node->status = 1; //(1 or 0): published or not
-    $node->promote = 0; //(1 or 0): promoted to front page
-    $node->comment = 1; //2 = comments on, 1 = comments off
-    
-    // Entity reference field
-    $node->field_student[$node->language][]['target_id'] = $user->uid;
-    $node->field_student[$node->language][]['target_type'] = 'user'; 
+  //check that this is a session type
+  
+  if ($objectName == 'LineItem'){
+    if ($op == 'create') {
+      //check to make sure this is a session type
+      _classy_sessions_initialize_api();
+      $contributions = civicrm_api('contribution', 'get', array('version'=>3, 'id'=>$objectRef['entity_id']));
+      foreach ($contributions['values'] as $contribution) {
+        $type = $contribution['contribution_type_id'];
+        
+      }
+      if ($type == $session_type_id){
 
-    $node = node_submit($node); // Prepare node for saving
-    node_save($node);
-    drupal_set_message( "Session with id " . $node->nid . " created!\n");*/
-  //} 
+        $c = 0;
+        while ($c < (int)$objectRef['qty']) {
+        
+          $node = new stdClass();
+          $node->title = "Unscheduled Session for " . $user->name;
+          $node->type = "session";
+          $node->language = LANGUAGE_NONE; // Or e.g. 'en' if locale is enabled
+          $node->uid = $user->uid; 
+          $node->status = 1; //(1 or 0): published or not
+          $node->promote = 0; //(1 or 0): promoted to front page
+          $node->comment = 1; //2 = comments on, 1 = comments off
+          
+          // Entity reference field
+          $node->field_student[$node->language][]['target_id'] = $user->uid;
+          $node->field_student[$node->language][]['target_type'] = 'user'; 
+
+          $node = node_submit($node); // Prepare node for saving
+          node_save($node);
+          drupal_set_message( "Session with id " . $node->nid . " created!\n");
+          $c++;
+        }
+      }
+    }  
+  
+  }
+
 }

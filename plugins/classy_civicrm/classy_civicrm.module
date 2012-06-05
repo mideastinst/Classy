@@ -83,95 +83,108 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
 
     if ($op == 'create') {
       //Check to see if this is paid or waiting  
-      $is_paid = ($objectRef->contribution_status_id == 1 ? TRUE : FALSE); 
-      $added = _classy_civicrm_record_credit($user, $civiuser, $objectId, $objectRef, $is_paid);
+      $is_paid = ($objectRef->contribution_status_id == 1 ? TRUE : FALSE);
+      $params = array(
+        'uid' => $user->uid,
+        'civiuser' => $civiuser,
+        'contribution_id' => $objectId,
+        'contribution_type_id' => $objectRef->contribution_type_id,
+        'is_paid' => $is_paid,
+      );
+     
+      $added = _classy_civicrm_record_credit($params);
             
     } elseif ($op == 'edit') {
       //check if this edit is updating the payment status
       if ($objectRef->contribution_status_id == 1) {
-        //get the old record
+
+        //get the old record(s)
         $query = db_select('classy_civicrm_credits', 'c');
         $query
           ->fields('c')
           ->condition('civi_contact_id', $civiuser,'=')
           ->condition('civi_contribution_id', $objectId,'=');
-        $result = $query->execute()->fetchAssoc();
+        $credit_records = $query->execute()->fetchAll();
         
-        //update the credits table, mark as paid
-        $table = 'classy_civicrm_credits';
-        $credit_id = $result['id'];
-        $record = array(
-          'id' => $credit_id,
-          'paid' => 1,
-        );  
-        drupal_write_record($table, $record, 'id');
-      }  elseif ($objectRef->contribution_status_id == 0) {  //no longer paid (e.g. cancelled)
+        foreach ($credit_records as $credit_record) {
+                    
+          //update the credits table, mark as paid
+          $table = 'classy_civicrm_credits';
+          $record = array(
+            'id' => $credit_record->id,
+            'paid' => 1,
+          );  
+          drupal_write_record($table, $record, 'id');
+        }
+      }  elseif ($objectRef->contribution_status_id != 1) {  //no longer paid (e.g. cancelled)
+       
         //get the old record
         $query = db_select('classy_civicrm_credits', 'c');
         $query
           ->fields('c')
           ->condition('civi_contact_id', $civiuser, '=')
           ->condition('civi_contribution_id', $objectId,'=');
-        $result = $query->execute()->fetchAssoc();
-        
-        $table = 'classy_civicrm_credits';
-        $credit_id = $result['id'];
-        $record = array(
-          'id' => $credit_id,
-          'paid' => 0,
-        );  
-        drupal_write_record($table, $record, 'id');
+        $result = $query->execute()->fetchAll();
+
+        foreach ($result as $credit_record) {
+          
+          $table = 'classy_civicrm_credits';
+          $record = array(
+            'id' => $credit_record->id,
+            'paid' => 0,
+          );  
+          drupal_write_record($table, $record, 'id');
+        }
       }      
     }        
   }
   
   //if there are multiple purchases they show up as one lump sum and then an insert into the 'civicrm_line_item' table
-  if ($objectName == 'LineItem') {
-    //&& $objectRef->entity_table == 'civicrm_contribution') { 
-    //@todo need to add check to reduce to only classy contributions    
-    dpm($objectRef);
+  // this does not get called on 'edit' only when the contribution is initially made
+  if ($objectName == 'LineItem'
+    && $objectRef['entity_table'] == 'civicrm_contribution') { 
+    //@todo need to add check to reduce to only classy contributions      
+    
     _classy_civicrm_initialize_api();
-    //@todo eventually might want to see if paid
-    
     //only needed if qty is multiple - single has already been added 
-    if ((int)$objectRef->qty > 1) {
+    if ((int)$objectRef['qty'] > 1) {
       //get contribution record using the entity_id - we need to know what type it is
-      $contribution = civicrm_api('contribution', 'get', array('version'=>3, 'id'=>$objectId));
-      dpm($contribution);
+      $contributions = civicrm_api('contribution', 'get', array('version'=>3, 'id'=>$objectId));
+
       $c = 1;
-      while ($c < $objectRef->qty) {
-        //_classy_civicrm_record_credit($user, $civiuser, $contribution_id, $contribution, 1){
-        $c++;
+      foreach ($contributions['values'] as $contribution) { 
+        while ($c < (int)$objectRef['qty']) {
+          $is_paid = ($contribution['contribution_status_id'] == 1 ? TRUE : FALSE);
+          $params = array(
+            'uid' => $user->uid,
+            'civiuser' => $contribution['contact_id'],
+            'contribution_id' => $contribution['id'],
+            'contribution_type_id' => $contribution['contribution_type_id'],
+            'is_paid' => $is_paid,
+          );
+          
+          $added = _classy_civicrm_record_credit($params);
+          $c++;
+        }
       }
-      
-      //basically run the previous stuff again
-    
-      //create a credit record for each qty
-    
     }
-    
   }
 }
 
-function _classy_civicrm_record_credit($user, $civiuser, $objectId, $objectRef, $is_paid){
+
+function _classy_civicrm_record_credit( $params ){
   //add language contributions to credits table
   $table = 'classy_civicrm_credits';
   $record = array(
-    'drupal_uid' => $user->uid,
-    'civi_contact_id' => $civiuser,
-    'civi_contribution_id' => $objectId,
-    'civi_contribution_type_id' => $objectRef->contribution_type_id,
-    'paid' => $is_paid,
+    'drupal_uid' => $params['uid'],
+    'civi_contact_id' => $params['civiuser'],
+    'civi_contribution_id' => $params['contribution_id'],
+    'civi_contribution_type_id' => $params['contribution_type_id'],
+    'paid' => $params['is_paid'],
     'used' => 0,
   );
   drupal_write_record($table, $record);
-
-
 }
-
-
-
-
 
 
 /**
@@ -256,7 +269,7 @@ function classy_civicrm_approval_criterion($type, $nid, $uid) {
     ->condition('class_id', $nid, '=')
     ->condition('state', 1, '=');
   $result = $query->execute()->fetchAssoc();
-  //dpm($result);
+
   if ($result) {
     $criterion = array('type' => 'has_credit', 'pass' => TRUE);
   } else {
