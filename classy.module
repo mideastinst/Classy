@@ -39,12 +39,6 @@ function classy_views_api() {
  * Implements hook_menu().
  */
 function classy_menu() {
-  /*$items['examples/classy'] = array(
-    'page callback' => 'classy_page',
-    'access arguments' => array('access content'),
-    'title' => 'Classy',
-  );*/
-
   $items['admin/classy'] = array(
     'title' => 'ClassySIS',
     'description' => 'Class Registration System.',
@@ -75,6 +69,25 @@ function classy_menu() {
     'file path' => drupal_get_path('module', 'system'),
     'file' => 'system.admin.inc',
   );
+  
+  $items['admin/classy/%user/%node/grade'] = array( 
+    'title' => t('Enter Grade'), 
+    'page callback' => 'drupal_get_form', 
+    'page arguments' => array('classy_user_grade'),
+    //'file path' => drupal_get_path('module', 'classy') . 'includes/',    
+    'file' => 'includes/classy.user_grade.inc',
+    'access arguments' => TRUE, 
+    'type' => MENU_NORMAL_ITEM, 
+  ); 
+  
+  
+  $items['user/%user/classes'] = array(
+    'title' => t('My Classes'),
+    'page arguments' => array(1),
+    'page callback' => 'classy_user_grades',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    );
   
   return $items;
 }
@@ -117,6 +130,12 @@ function classy_page() {
 
   return $build;
 }
+
+function classy_user_grades() {
+  $view = views_embed_view('student_enrollment', 'user');
+  return $view; 
+}
+
 
 /**
  * Implements hook_entity_info_alter().
@@ -322,7 +341,7 @@ function classy_form_alter(&$form, &$form_state, $form_id) {
   
 }
 
-function classy_enrollment_enroll($form, &$form_state) {   //@pickup - not getting the right nid in the form - processing wrong form when multiple forms on same page
+function classy_enrollment_enroll($form, &$form_state) {   
   //make sure not already enrolled or withdrawn
   global $user;
   $uid = $user->uid;
