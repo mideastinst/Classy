@@ -29,6 +29,11 @@ $handler->display->display_options['relationships']['class_id']['id'] = 'class_i
 $handler->display->display_options['relationships']['class_id']['table'] = 'classy_grades';
 $handler->display->display_options['relationships']['class_id']['field'] = 'class_id';
 $handler->display->display_options['relationships']['class_id']['required'] = 0;
+/* Relationship: Classy: Student Reference */
+$handler->display->display_options['relationships']['student_id']['id'] = 'student_id';
+$handler->display->display_options['relationships']['student_id']['table'] = 'classy_grades';
+$handler->display->display_options['relationships']['student_id']['field'] = 'student_id';
+$handler->display->display_options['relationships']['student_id']['required'] = 0;
 /* Field: Content: Year */
 $handler->display->display_options['fields']['classy_year_id']['id'] = 'classy_year_id';
 $handler->display->display_options['fields']['classy_year_id']['table'] = 'field_data_classy_year_id';
@@ -129,6 +134,35 @@ $handler->display->display_options['fields']['classy_time_id']['alter']['ellipsi
 $handler->display->display_options['fields']['classy_time_id']['alter']['more_link'] = 0;
 $handler->display->display_options['fields']['classy_time_id']['alter']['strip_tags'] = 0;
 $handler->display->display_options['fields']['classy_time_id']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['html'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['hide_empty'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['empty_zero'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['settings'] = array(
+  'link' => 0,
+);
+$handler->display->display_options['fields']['classy_time_id']['field_api_classes'] = 0;
+/* Field: Classy: Grade */
+$handler->display->display_options['fields']['grade']['id'] = 'grade';
+$handler->display->display_options['fields']['grade']['table'] = 'classy_grades';
+$handler->display->display_options['fields']['grade']['field'] = 'grade';
+/* Filter criterion: User: Current */
+$handler->display->display_options['filters']['uid_current']['id'] = 'uid_current';
+$handler->display->display_options['filters']['uid_current']['table'] = 'users';
+$handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';
+$handler->display->display_options['filters']['uid_current']['relationship'] = 'student_id';
+$handler->display->display_options['filters']['uid_current']['value'] = '1';
+
+/* Display: User Page */
+$handler = $view->new_display('page', 'User Page', 'user');
+$handler->display->display_options['path'] = 'my-classes';
+$handler->display->display_options['menu']['type'] = 'tab';
+$handler->display->display_options['menu']['title'] = 'Classes';
+$handler->display->display_options['menu']['weight'] = '0';
+$handler->display->display_options['menu']['name'] = 'user-menu';
+$handler->display->display_options['menu']['context'] = 0;
 $handler->display->display_options['fields']['classy_time_id']['alter']['html'] = 0;
 $handler->display->display_options['fields']['classy_time_id']['element_label_colon'] = 1;
 $handler->display->display_options['fields']['classy_time_id']['element_default_classes'] = 1;

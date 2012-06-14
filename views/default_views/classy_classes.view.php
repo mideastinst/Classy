@@ -113,7 +113,7 @@ $handler->display->display_options['fields']['classy_time_id']['hide_empty'] = 0
 $handler->display->display_options['fields']['classy_time_id']['empty_zero'] = 0;
 $handler->display->display_options['fields']['classy_time_id']['hide_alter_empty'] = 1;
 $handler->display->display_options['fields']['classy_time_id']['field_api_classes'] = 0;
-/* Field: Node: Link */
+/* Field: Content: Link */
 $handler->display->display_options['fields']['view_node']['id'] = 'view_node';
 $handler->display->display_options['fields']['view_node']['table'] = 'views_entity_node';
 $handler->display->display_options['fields']['view_node']['field'] = 'view_node';
@@ -198,22 +198,26 @@ $handler->display->display_options['title'] = 'Current Classes';
 $handler->display->display_options['defaults']['style_plugin'] = FALSE;
 $handler->display->display_options['style_plugin'] = 'table';
 $handler->display->display_options['style_options']['columns'] = array(
+  'title_1' => 'title_1',
   'title' => 'title',
-  'body' => 'body',
   'classy_time_id' => 'classy_time_id',
-  'classy_teacher_id' => 'classy_teacher_id',
-  'classy_room_id' => 'classy_room_id',
+  'name' => 'name',
+  'name_1' => 'name_1',
+  'classy_enrolled' => 'classy_enrolled',
+  'nid' => 'nid',
+  'nothing' => 'nothing',
+  'edit_node' => 'edit_node',
 );
 $handler->display->display_options['style_options']['default'] = '-1';
 $handler->display->display_options['style_options']['info'] = array(
-  'title' => array(
+  'title_1' => array(
     'sortable' => 0,
     'default_sort_order' => 'asc',
     'align' => '',
     'separator' => '',
     'empty_column' => 0,
   ),
-  'body' => array(
+  'title' => array(
     'sortable' => 0,
     'default_sort_order' => 'asc',
     'align' => '',
@@ -227,16 +231,40 @@ $handler->display->display_options['style_options']['info'] = array(
     'separator' => '',
     'empty_column' => 0,
   ),
-  'classy_teacher_id' => array(
+  'name' => array(
     'sortable' => 0,
     'default_sort_order' => 'asc',
     'align' => '',
     'separator' => '',
     'empty_column' => 0,
   ),
-  'classy_room_id' => array(
+  'name_1' => array(
+    'sortable' => 1,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'classy_enrolled' => array(
+    'sortable' => 1,
+    'default_sort_order' => 'desc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'nid' => array(
     'sortable' => 0,
     'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'nothing' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'edit_node' => array(
     'align' => '',
     'separator' => '',
     'empty_column' => 0,
@@ -426,7 +454,7 @@ $handler->display->display_options['fields']['nid']['link_to_node'] = 0;
 $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
 $handler->display->display_options['fields']['nothing']['table'] = 'views';
 $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
-$handler->display->display_options['fields']['nothing']['label'] = 'View Class';
+$handler->display->display_options['fields']['nothing']['label'] = '';
 $handler->display->display_options['fields']['nothing']['alter']['text'] = 'View';
 $handler->display->display_options['fields']['nothing']['alter']['make_link'] = 1;
 $handler->display->display_options['fields']['nothing']['alter']['path'] = 'admin/classy/class/[nid]';
@@ -441,11 +469,34 @@ $handler->display->display_options['fields']['nothing']['alter']['more_link'] = 
 $handler->display->display_options['fields']['nothing']['alter']['strip_tags'] = 0;
 $handler->display->display_options['fields']['nothing']['alter']['trim'] = 0;
 $handler->display->display_options['fields']['nothing']['alter']['html'] = 0;
-$handler->display->display_options['fields']['nothing']['element_label_colon'] = 0;
+$handler->display->display_options['fields']['nothing']['element_label_colon'] = FALSE;
 $handler->display->display_options['fields']['nothing']['element_default_classes'] = 1;
 $handler->display->display_options['fields']['nothing']['hide_empty'] = 0;
 $handler->display->display_options['fields']['nothing']['empty_zero'] = 0;
 $handler->display->display_options['fields']['nothing']['hide_alter_empty'] = 0;
+/* Field: Content: Edit link */
+$handler->display->display_options['fields']['edit_node']['id'] = 'edit_node';
+$handler->display->display_options['fields']['edit_node']['table'] = 'views_entity_node';
+$handler->display->display_options['fields']['edit_node']['field'] = 'edit_node';
+$handler->display->display_options['fields']['edit_node']['label'] = '';
+$handler->display->display_options['fields']['edit_node']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['edit_node']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['edit_node']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['edit_node']['alter']['html'] = 0;
+$handler->display->display_options['fields']['edit_node']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['edit_node']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['edit_node']['hide_empty'] = 0;
+$handler->display->display_options['fields']['edit_node']['empty_zero'] = 0;
+$handler->display->display_options['fields']['edit_node']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['edit_node']['text'] = 'Edit';
 $handler->display->display_options['defaults']['filters'] = FALSE;
 /* Filter criterion: Content: Published */
 $handler->display->display_options['filters']['status']['id'] = 'status';
@@ -687,10 +738,11 @@ $handler->display->display_options['fields']['classy_time_id']['hide_empty'] = 0
 $handler->display->display_options['fields']['classy_time_id']['empty_zero'] = 0;
 $handler->display->display_options['fields']['classy_time_id']['hide_alter_empty'] = 1;
 $handler->display->display_options['fields']['classy_time_id']['field_api_classes'] = 0;
-/* Field: Node: Link */
+/* Field: Content: Link */
 $handler->display->display_options['fields']['view_node']['id'] = 'view_node';
 $handler->display->display_options['fields']['view_node']['table'] = 'views_entity_node';
 $handler->display->display_options['fields']['view_node']['field'] = 'view_node';
+$handler->display->display_options['fields']['view_node']['label'] = '';
 $handler->display->display_options['fields']['view_node']['alter']['alter_text'] = 0;
 $handler->display->display_options['fields']['view_node']['alter']['make_link'] = 0;
 $handler->display->display_options['fields']['view_node']['alter']['absolute'] = 0;
@@ -703,11 +755,12 @@ $handler->display->display_options['fields']['view_node']['alter']['more_link'] 
 $handler->display->display_options['fields']['view_node']['alter']['strip_tags'] = 0;
 $handler->display->display_options['fields']['view_node']['alter']['trim'] = 0;
 $handler->display->display_options['fields']['view_node']['alter']['html'] = 0;
-$handler->display->display_options['fields']['view_node']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['view_node']['element_label_colon'] = FALSE;
 $handler->display->display_options['fields']['view_node']['element_default_classes'] = 1;
 $handler->display->display_options['fields']['view_node']['hide_empty'] = 0;
 $handler->display->display_options['fields']['view_node']['empty_zero'] = 0;
 $handler->display->display_options['fields']['view_node']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['view_node']['text'] = 'Enroll';
 $handler->display->display_options['defaults']['filters'] = FALSE;
 /* Filter criterion: Content: Published */
 $handler->display->display_options['filters']['status']['id'] = 'status';
@@ -903,7 +956,7 @@ $handler->display->display_options['fields']['classy_semester_id']['settings'] =
   'link' => 0,
 );
 $handler->display->display_options['fields']['classy_semester_id']['field_api_classes'] = 0;
-/* Field: Node: Link */
+/* Field: Content: Link */
 $handler->display->display_options['fields']['view_node']['id'] = 'view_node';
 $handler->display->display_options['fields']['view_node']['table'] = 'views_entity_node';
 $handler->display->display_options['fields']['view_node']['field'] = 'view_node';
@@ -924,6 +977,7 @@ $handler->display->display_options['fields']['view_node']['element_default_class
 $handler->display->display_options['fields']['view_node']['hide_empty'] = 0;
 $handler->display->display_options['fields']['view_node']['empty_zero'] = 0;
 $handler->display->display_options['fields']['view_node']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['view_node']['text'] = 'Enroll';
 $handler->display->display_options['defaults']['arguments'] = FALSE;
 /* Contextual filter: Content: Nid */
 $handler->display->display_options['arguments']['nid']['id'] = 'nid';
@@ -1139,3 +1193,4 @@ $handler->display->display_options['filters']['type']['field'] = 'type';
 $handler->display->display_options['filters']['type']['value'] = array(
   'class' => 'class',
 );
+

@@ -47,6 +47,64 @@ function classy_civicrm_config() {
   return system_settings_form($form);
 }
 
+/**
+ * Implementation of hook_block_info()
+ */
+
+function classy_civicrm_block_info() {
+  $blocks = array();
+  $blocks['vouchers'] = array(
+    'info' => t('Available Vouchers (User)'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  return $blocks;
+}
+
+
+/**
+ * Implementation of hook_block_view();
+ */
+function classy_civicrm_block_view($delta) {
+  if ($delta == 'vouchers') {
+    //grab the session variable for available user credits    
+    $available = _classy_civicrm_credit_check_display();  
+
+    $block_vars = array();
+    foreach ($available as $key=>$credit_count) {
+      if ($key==5) {
+        $name = "Regular";
+        $key = 4;
+      } elseif ($key=='6'){
+        $name = "Session";
+        $key = 3;
+      }
+
+      $block_vars[$key] = array('name' => $name, 'count' => $credit_count);
+    }
+
+    $content = theme('classy_vouchers', array('args'=>$block_vars));
+    $block = array(
+      'subject' => '',
+      'content' => $content,
+    );
+    return $block;
+  }
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+
+function classy_civicrm_theme() {
+  return array(
+    'classy_vouchers' => array(
+      'variables' => array($args = NULL),
+      'template' => 'classy-vouchers',
+    ),
+  ); 
+}
+
+
 
 
 /** 
@@ -169,6 +227,7 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
       }
     }
   }
+  _classy_civicrm_credit_check_display(TRUE);
 }
 
 
@@ -353,12 +412,58 @@ function classy_civicrm_enrollment_enroll($form, &$form_state) {
       'used' => 1,
     );  
     drupal_write_record($table, $record, 'id');
-  } 
+  }
+  _classy_civicrm_credit_check_display(TRUE); 
 }
 
 
+function _classy_civicrm_credit_check_display($reset = NULL) {
+  $available = array();  
+  
+  //check to see if this is a first load
+  if (!isset($_SESSION['classy_credits'])) {
+    $build = 1;
+  }
 
+  if (is_null($reset) || $build) {  //needs to be rebuilt
+    
+    //get the current user and contribution types
+    global $user;
+    $contribution_types = array();
+    $types = variable_get('classy_civicrm_type');
+    foreach ($types as $type) {
+      $contribution_types[] = $type;
+    }
 
+    //query credits table for all credit types to find # available (paid)
+    $query = db_select('classy_civicrm_credits', 'c');
+    $query
+      ->fields('c')
+      ->condition('drupal_uid', $user->uid, '=')
+      ->condition('civi_contribution_type_id', $contribution_types,'IN');
+    $result = $query->execute()->fetchAll();
+    
+    foreach ($result as $credit) {
+      if (!array_key_exists($credit->civi_contribution_type_id, $available)) {
+          $available[$credit->civi_contribution_type_id]['unpaid'] = 0;
+          $available[$credit->civi_contribution_type_id]['open'] = 0;
+      }        
+      if ($credit->paid == 1 && $credit->used == 0) {
+        $available[$credit->civi_contribution_type_id]['open']++;
+      } elseif ($credit->paid == 0 && $credit->used == 0) {
+        $available[$credit->civi_contribution_type_id]['unpaid']++;
+      }
+    }
+    //add to session variable for the next page load
+    $_SESSION['classy_credits'] = $available;
+  } else {
+    foreach ($_SESSION['classy_credits'] as $key=>$credit_count) {
+      $available[$key] = $credit_count;
+    }
+  }
+
+  return $available;
+}
 
 
 //////////////migration stuff///////////////////
@@ -373,3 +478,4 @@ INSERT INTO classy_civicrm_credits
   (1,1,8,4,1,0);
   
 */
+

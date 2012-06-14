@@ -88,6 +88,14 @@ function classy_menu() {
     'access callback' => TRUE,
     'type' => MENU_LOCAL_TASK,
     );
+
+  $items['user/%user/teaching'] = array(
+    'title' => t('Teaching'),
+    'page arguments' => array(1),
+    'page callback' => 'classy_teacher_classes',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    );
   
   return $items;
 }
@@ -133,6 +141,11 @@ function classy_page() {
 
 function classy_user_grades() {
   $view = views_embed_view('student_enrollment', 'user');
+  return $view; 
+}
+
+function classy_teacher_classes() {
+  $view = views_embed_view('classes', 'teaching');
   return $view; 
 }
 
