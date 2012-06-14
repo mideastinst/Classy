@@ -76,7 +76,7 @@ function classy_sessions_form_alter(&$form, &$form_state, $form_id) {
  */
 
 function classy_sessions_node_presave($node){
-  dpm($node);
+  
   if ($node->type == 'session') {
     //uid comes from the student ref field
     $uid = $node->field_student[$node->language][0]['target_id'];
@@ -84,57 +84,77 @@ function classy_sessions_node_presave($node){
     //get the session civicrm type
     $types = variable_get('classy_civicrm_type');
     $session_type_id = $types['session'];
-    
-    //session has been marked as used
-    if ($node->field_used[$node->language][0]['value'] == 1
-      && $node->original->field_used[$node->language][0]['value'] == 0) {
+   
+    if ($node->is_new != TRUE) {
+      //get the change in state
+      $state = taxonomy_term_load($node->field_session_status[$node->language][0]['target_id']);
+      if (isset($node->original->field_session_status[$node->language][0])) {
+        $old_state = taxonomy_term_load($node->original->field_session_status[$node->language][0]['target_id']);
+      }
+      //get number of credits to modify
+      $num_credits = $node->field_number_of_credits[$node->language][0]['value'];
       
-      //modify a credit and mark as used
-      //get an available credit for the user
-      $query = db_select('classy_civicrm_credits', 'c');
-      $query
-        ->fields('c')
-        ->condition('drupal_uid', $uid,'=')
-        ->condition('civi_contribution_type_id', $session_type_id, '=')
-        ->condition('paid', 1, '=')
-        ->condition('used', 0, '=');
-      $result = $query->execute()->fetchAssoc();
-      $credit_id = $result['id'];
+      //session is being scheduled ( probably need to add a 'number scheduled' to the display block' )
+      $mod = intval($num_credits) * 30;     
+      //set end time for calendar display
+      $shift = strtotime($node->field_date[$node->language][0]['value2']);
+      $time = strtotime("+". $mod . " minutes", $shift);
+      $new_time = date("Y-m-d\TH:i:s", $time);
+       
+      $node->field_date[$node->language][0]['value2'] = $new_time; 
+      
+      //session has been marked as used 
+      if ($state->name == "Used" && $old_state->name != "Used") {
 
-      $table = 'classy_civicrm_credits';
-      $record = array(
-        'id' => $credit_id,
-        'drupal_id' => $uid,
-        'used' => 1,
-      );  
-      drupal_write_record($table, $record, 'id');
-    
-    } elseif ($node->field_used[$node->language][0]['value'] == 0  //session has been marked as unused (refunded)
-      && $node->original->field_used[$node->language][0]['value'] == 1) {
+        //get available credits for the user
+        $query = db_select('classy_civicrm_credits', 'c');
+        $query
+          ->fields('c')
+          ->condition('drupal_uid', $uid,'=')
+          ->condition('civi_contribution_type_id', $session_type_id, '=')
+          ->condition('paid', 1, '=')
+          ->condition('used', 0, '=')
+          ->range(0, $num_credits);
+        $result = $query->execute()->fetchAll();
+       // dpm($result);
+        
+        foreach ($result as $credit) {
+          $table = 'classy_civicrm_credits';
+          $record = array(
+            'id' => $credit->id,
+            'drupal_id' => $uid,
+            'used' => 1,
+          );  
+          drupal_write_record($table, $record, 'id');
+        }
       
-      //mark a credit as unused
-      //get an available credit for the user
-      $query = db_select('classy_civicrm_credits', 'c');
-      $query
-        ->fields('c')
-        ->condition('drupal_uid', $uid,'=')
-        ->condition('civi_contribution_type_id', $session_type_id, '=')
-        ->condition('paid', 1, '=')
-        ->condition('used', 1, '=');
-      $result = $query->execute()->fetchAssoc();
-      $credit_id = $result['id'];
-
-      $table = 'classy_civicrm_credits';
-      $record = array(
-        'id' => $credit_id,
-        'drupal_id' => $uid,
-        'used' => 0,
-      );  
-      drupal_write_record($table, $record, 'id');
-      
-      
+      } elseif ($state->name != "Used" && (!empty($old_state) && $old_state->name == "Used")) { //credit refunded
+        //mark a credit as unused
+        //release credits for the user
+        $query = db_select('classy_civicrm_credits', 'c');
+        $query
+          ->fields('c')
+          ->condition('drupal_uid', $uid,'=')
+          ->condition('civi_contribution_type_id', $session_type_id, '=')
+          ->condition('paid', 1, '=')
+          ->condition('used', 1, '=')
+          ->range(0, $num_credits);
+        $result = $query->execute()->fetchAll();
+        foreach ($result as $credit) {
+          $table = 'classy_civicrm_credits';
+          $record = array(
+            'id' => $credit->id,
+            'drupal_id' => $uid,
+            'used' => 0,
+          );  
+          drupal_write_record($table, $record, 'id');
+        }
+        
+      }
     }
+    classy_civicrm_credit_check_display(TRUE);
   }
+  
 }
 
 
@@ -167,16 +187,16 @@ function classy_sessions_civicrm_post( $op, $objectName, $objectId, &$objectRef 
         
       }
       if ($type == $session_type_id){
-
-        $c = 0;
-        while ($c < (int)$objectRef['qty']) {
+        //create an initial session, just so the admins know they need to schedule one
+        //$c = 0;
+        //while ($c < (int)$objectRef['qty']) {
         
           $node = new stdClass();
           $node->title = "Unscheduled Session for " . $user->name;
           $node->type = "session";
           $node->language = LANGUAGE_NONE; // Or e.g. 'en' if locale is enabled
           $node->uid = $user->uid; 
-          $node->status = 1; //(1 or 0): published or not
+          $node->status = 0; //(1 or 0): published or not
           $node->promote = 0; //(1 or 0): promoted to front page
           $node->comment = 1; //2 = comments on, 1 = comments off
           
@@ -187,8 +207,8 @@ function classy_sessions_civicrm_post( $op, $objectName, $objectId, &$objectRef 
           $node = node_submit($node); // Prepare node for saving
           node_save($node);
           drupal_set_message( "Session with id " . $node->nid . " created!\n");
-          $c++;
-        }
+         // $c++;
+        //}
       }
     }  
   

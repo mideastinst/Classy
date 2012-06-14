@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Implements hook_theme_registry_alter()
  * Want to provide theming tpls here, rather than just in the theme
@@ -246,7 +245,7 @@ function classy_preprocess_node(&$vars) {
         //$view->set_display('by_course');
         
         //$view = views_embed_view('classes', $display_id = 'by_course');
-        //dpm($block);
+
         
         
         $vars['class_list'] = $block['content'];
@@ -260,8 +259,7 @@ function classy_preprocess_node(&$vars) {
           ->condition('state', 1, '=')
           ->groupBy('class_id');
         $result = $query->execute()->fetchAll();
-        
-        //dpm($result);
+
         /*foreach ($result as $class) { //update class node to reflect enrollment
           $table = 'field_data_classy_enrolled';
           
@@ -349,7 +347,7 @@ function classy_form_alter(&$form, &$form_state, $form_id) {
   if (in_array($form_id, $enroll_forms)){
     $form['#submit'][] = 'classy_enrollment_enroll';
   }  
-  //dpm($form);
+
   //add signup role - add 'enrolled' role once signed up
   
 }
@@ -358,7 +356,6 @@ function classy_enrollment_enroll($form, &$form_state) {
   //make sure not already enrolled or withdrawn
   global $user;
   $uid = $user->uid;
- // dpm($form);
   //check for old record
   $query = db_select('classy_enrollment', 'e');
   $query
@@ -366,12 +363,7 @@ function classy_enrollment_enroll($form, &$form_state) {
     ->condition('student_id', $uid,'=')
     ->condition('class_id', $form['nid']['#value'],'=');
   $result = $query->execute()->fetchAssoc();
-  //dpm($result);
   
-  //$all = $result->fetchAll();
-  //$single = $result->fetchAssoc();
-//dpm($all);
-//dpm($single);
   if ($form['#form_id'] == 'classy_withdraw') {
     
     $table = 'classy_enrollment';

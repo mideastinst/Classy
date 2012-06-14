@@ -64,24 +64,27 @@ function classy_civicrm_block_info() {
 /**
  * Implementation of hook_block_view();
  */
+ 
 function classy_civicrm_block_view($delta) {
   if ($delta == 'vouchers') {
-    //grab the session variable for available user credits    
-    $available = _classy_civicrm_credit_check_display();  
-
     $block_vars = array();
-    foreach ($available as $key=>$credit_count) {
-      if ($key==5) {
-        $name = "Regular";
-        $key = 4;
-      } elseif ($key=='6'){
-        $name = "Session";
-        $key = 3;
-      }
-
-      $block_vars[$key] = array('name' => $name, 'count' => $credit_count);
+    
+    //get information for the available contribution types
+    $contribution_types = variable_get('classy_civicrm_type_info');
+    
+    //create some shit for each possible type
+    foreach ($contribution_types as $contribution_type_id=>$contribution_type) {
+      $block_vars[$contribution_type_id] = $contribution_type;
     }
-
+    
+    //grab the session variable for available user credits    
+    $available = classy_civicrm_credit_check_display();  
+        
+    foreach ($available as $contribution_type_id=>$credit_count) {
+      if (array_key_exists($contribution_type_id, $contribution_types)) {
+        $block_vars[$contribution_type_id]['count'] = $credit_count;
+      }
+    }
     $content = theme('classy_vouchers', array('args'=>$block_vars));
     $block = array(
       'subject' => '',
@@ -194,7 +197,8 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
           drupal_write_record($table, $record, 'id');
         }
       }      
-    }        
+    }
+    classy_civicrm_credit_check_display(TRUE);    
   }
   
   //if there are multiple purchases they show up as one lump sum and then an insert into the 'civicrm_line_item' table
@@ -226,8 +230,9 @@ function classy_civicrm_civicrm_post( $op, $objectName, $objectId, &$objectRef )
         }
       }
     }
+    classy_civicrm_credit_check_display(TRUE);
   }
-  _classy_civicrm_credit_check_display(TRUE);
+
 }
 
 
@@ -320,7 +325,7 @@ function classy_civicrm_approval_criterion($type, $nid, $uid) {
     $contrib_page = '3';
   }
   
-  //get the current node (shift away from arg(1) needed) -- checking against this overriding 'withdraw'
+  //get the current node - checking against this overriding 'withdraw'
   $query = db_select('classy_enrollment', 'e');
   $query
     ->fields('e')
@@ -348,7 +353,7 @@ function classy_civicrm_approval_criterion($type, $nid, $uid) {
     if ($credit == TRUE) {
       $criterion = array('type' => 'has_credit', 'pass' => TRUE);
     } else {
-      $criterion = array('type' => 'has_credit', 'pass' => FALSE, 'target' => '/civicrm/contribute/transact?reset=1&id=' . $contrib_page, 'text'=> 'Add Credits');
+      $criterion = array('type' => 'has_credit', 'pass' => FALSE, 'target' => '/civicrm/contribute/transact?reset=1&id=' . $contrib_page, 'text'=> '.');
     }
   
   }
@@ -360,12 +365,16 @@ function classy_civicrm_approval_criterion($type, $nid, $uid) {
  * Implementation of hook_form_alter
  */
 function classy_civicrm_form_alter(&$form, &$form_state, $form_id) {
+
   $enroll_forms = array('classy_enroll', 'classy_withdraw');
   if (in_array($form['#form_id'], $enroll_forms)){
     $form['#submit'][] = 'classy_civicrm_enrollment_enroll';
+  } elseif ($form_id == 'classy_civicrm_config') {
+    $form['#submit'][] = 'classy_civicrm_config_helper';
   }
-}
   
+}
+
 function classy_civicrm_enrollment_enroll($form, &$form_state) {   
   global $user;
   $uid = $user->uid;
@@ -413,19 +422,44 @@ function classy_civicrm_enrollment_enroll($form, &$form_state) {
     );  
     drupal_write_record($table, $record, 'id');
   }
-  _classy_civicrm_credit_check_display(TRUE); 
+  classy_civicrm_credit_check_display(TRUE); 
+}
+
+function classy_civicrm_config_helper($form, &$form_state) {
+  $types = array();
+  //initialize api
+  _classy_civicrm_initialize_api();
+  
+  foreach ($form_state['values']['classy_civicrm_type'] as $name=>$type){
+    //get the name and description for each class type from civi
+    $query = "SELECT * FROM civicrm_contribution_type WHERE id=" . $type;
+    $dao =& CRM_Core_DAO::executeQuery($query);
+    while($dao->fetch()) {
+      $types[$dao->id] = array('name'=>$dao->name);
+    }
+    foreach ($types as $key=>$value) {
+      $query = "SELECT * FROM civicrm_contribution_page WHERE contribution_type_id=" . $key;
+      $dao =& CRM_Core_DAO::executeQuery($query);
+      while ($dao->fetch()) {
+        $types[$key]['contribution_page'] = $dao->id;
+      }
+    }
+
+  }
+  variable_set('classy_civicrm_type_info', $types);
+
 }
 
 
-function _classy_civicrm_credit_check_display($reset = NULL) {
+function classy_civicrm_credit_check_display($reset = NULL) {
   $available = array();  
-  
+
   //check to see if this is a first load
   if (!isset($_SESSION['classy_credits'])) {
-    $build = 1;
-  }
+    $build = TRUE;
+  } 
 
-  if (is_null($reset) || $build) {  //needs to be rebuilt
+  if (!is_null($reset) || isset($build)) {  //needs to be rebuilt
     
     //get the current user and contribution types
     global $user;
