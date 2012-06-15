@@ -24,6 +24,14 @@ function classy_sessions_menu() {
     'weight' => 50,
   );
   
+  $items['user/%user/sessions'] = array(
+    'title' => t('My Sessions'),
+    'page arguments' => array(1),
+    'page callback' => 'classy_sessions_user_sessions',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+  );
+  
   return $items;
 }
 
@@ -43,6 +51,13 @@ function classy_sessions_admin() {
   
   return drupal_render($output);
 }
+
+function classy_sessions_user_sessions() {
+  $view = views_embed_view('sessions', 'user');
+  return $view; 
+}
+
+
 
 function _classy_sessions_initialize_api() {
   $civi_drupal_path = drupal_get_path('module','civicrm');

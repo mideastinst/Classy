@@ -86,7 +86,7 @@ function classy_menu() {
     'page callback' => 'classy_user_grades',
     'access callback' => TRUE,
     'type' => MENU_LOCAL_TASK,
-    );
+  );
 
   $items['user/%user/teaching'] = array(
     'title' => t('Teaching'),
@@ -94,7 +94,7 @@ function classy_menu() {
     'page callback' => 'classy_teacher_classes',
     'access callback' => TRUE,
     'type' => MENU_LOCAL_TASK,
-    );
+  );
   
   return $items;
 }
