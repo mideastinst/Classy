@@ -1,5 +1,4 @@
 <?php
-
 $view = new view;
 $view->name = 'classes';
 $view->description = '';
@@ -776,11 +775,13 @@ $handler->display->display_options['filters']['type']['field'] = 'type';
 $handler->display->display_options['filters']['type']['value'] = array(
   'class' => 'class',
 );
+$handler->display->display_options['filters']['type']['group'] = 1;
 /* Filter criterion: Content: Language (classy_language_id) */
 $handler->display->display_options['filters']['classy_language_id_target_id']['id'] = 'classy_language_id_target_id';
 $handler->display->display_options['filters']['classy_language_id_target_id']['table'] = 'field_data_classy_language_id';
 $handler->display->display_options['filters']['classy_language_id_target_id']['field'] = 'classy_language_id_target_id';
 $handler->display->display_options['filters']['classy_language_id_target_id']['relationship'] = 'classy_course_id_target_id';
+$handler->display->display_options['filters']['classy_language_id_target_id']['group'] = 1;
 $handler->display->display_options['filters']['classy_language_id_target_id']['exposed'] = TRUE;
 $handler->display->display_options['filters']['classy_language_id_target_id']['expose']['operator_id'] = 'classy_language_id_target_id_op';
 $handler->display->display_options['filters']['classy_language_id_target_id']['expose']['label'] = 'Language';
@@ -792,16 +793,34 @@ $handler->display->display_options['filters']['classy_level_id_target_id']['id']
 $handler->display->display_options['filters']['classy_level_id_target_id']['table'] = 'field_data_classy_level_id';
 $handler->display->display_options['filters']['classy_level_id_target_id']['field'] = 'classy_level_id_target_id';
 $handler->display->display_options['filters']['classy_level_id_target_id']['relationship'] = 'classy_course_id_target_id';
+$handler->display->display_options['filters']['classy_level_id_target_id']['group'] = 1;
 $handler->display->display_options['filters']['classy_level_id_target_id']['exposed'] = TRUE;
 $handler->display->display_options['filters']['classy_level_id_target_id']['expose']['operator_id'] = 'classy_level_id_target_id_op';
 $handler->display->display_options['filters']['classy_level_id_target_id']['expose']['label'] = 'Level';
 $handler->display->display_options['filters']['classy_level_id_target_id']['expose']['operator'] = 'classy_level_id_target_id_op';
 $handler->display->display_options['filters']['classy_level_id_target_id']['expose']['identifier'] = 'classy_level_id_target_id';
 $handler->display->display_options['filters']['classy_level_id_target_id']['expose']['reduce'] = 0;
+/* Filter criterion: Content: Semester (classy_semester_id) */
+$handler->display->display_options['filters']['classy_semester_id_target_id']['id'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['table'] = 'field_data_classy_semester_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['field'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['value'] = array(
+  41 => '41',
+  44 => '44',
+  45 => '45',
+);
+$handler->display->display_options['filters']['classy_semester_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_semester_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['operator_id'] = 'classy_semester_id_target_id_op';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['label'] = 'Semester';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['operator'] = 'classy_semester_id_target_id_op';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['identifier'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['reduce'] = 1;
 /* Filter criterion: Content: Time (classy_time_id) */
 $handler->display->display_options['filters']['classy_time_id_target_id']['id'] = 'classy_time_id_target_id';
 $handler->display->display_options['filters']['classy_time_id_target_id']['table'] = 'field_data_classy_time_id';
 $handler->display->display_options['filters']['classy_time_id_target_id']['field'] = 'classy_time_id_target_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['group'] = 1;
 $handler->display->display_options['filters']['classy_time_id_target_id']['exposed'] = TRUE;
 $handler->display->display_options['filters']['classy_time_id_target_id']['expose']['operator_id'] = 'classy_time_id_target_id_op';
 $handler->display->display_options['filters']['classy_time_id_target_id']['expose']['label'] = 'Time ';
@@ -815,6 +834,7 @@ $handler->display->display_options['filters']['classy_year_id_target_id']['field
 $handler->display->display_options['filters']['classy_year_id_target_id']['value'] = array(
   30 => '30',
 );
+$handler->display->display_options['filters']['classy_year_id_target_id']['group'] = 1;
 $handler->display->display_options['filters']['classy_year_id_target_id']['expose']['operator_id'] = 'classy_year_id_target_id_op';
 $handler->display->display_options['filters']['classy_year_id_target_id']['expose']['label'] = 'Year (classy_year_id)';
 $handler->display->display_options['filters']['classy_year_id_target_id']['expose']['use_operator'] = FALSE;
@@ -823,6 +843,15 @@ $handler->display->display_options['filters']['classy_year_id_target_id']['expos
 $handler->display->display_options['filters']['classy_year_id_target_id']['expose']['required'] = FALSE;
 $handler->display->display_options['filters']['classy_year_id_target_id']['expose']['remember'] = FALSE;
 $handler->display->display_options['filters']['classy_year_id_target_id']['expose']['multiple'] = FALSE;
+/* Filter criterion: Content: Semester (classy_semester_id) */
+$handler->display->display_options['filters']['classy_semester_id_target_id_1']['id'] = 'classy_semester_id_target_id_1';
+$handler->display->display_options['filters']['classy_semester_id_target_id_1']['table'] = 'field_data_classy_semester_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id_1']['field'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id_1']['value'] = array(
+  41 => '41',
+  44 => '44',
+  45 => '45',
+);
 $handler->display->display_options['path'] = 'classes';
 $handler->display->display_options['menu']['title'] = 'Check';
 $handler->display->display_options['menu']['weight'] = '0';
@@ -1194,3 +1223,241 @@ $handler->display->display_options['filters']['type']['value'] = array(
   'class' => 'class',
 );
 
+/* Display: Teaching */
+$handler = $view->new_display('page', 'Teaching', 'teaching');
+$handler->display->display_options['defaults']['title'] = FALSE;
+$handler->display->display_options['title'] = 'Teaching';
+$handler->display->display_options['display_description'] = 'Classes by instructor';
+$handler->display->display_options['defaults']['access'] = FALSE;
+$handler->display->display_options['access']['type'] = 'role';
+$handler->display->display_options['access']['role'] = array(
+  5 => '5',
+);
+$handler->display->display_options['defaults']['style_plugin'] = FALSE;
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title_1' => 'title_1',
+  'title' => 'title',
+  'classy_time_id' => 'classy_time_id',
+  'view_node' => 'view_node',
+  'classy_semester_id' => 'classy_semester_id',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title_1' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'classy_time_id' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'view_node' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'classy_semester_id' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+$handler->display->display_options['style_options']['override'] = 1;
+$handler->display->display_options['style_options']['sticky'] = 0;
+$handler->display->display_options['style_options']['empty_table'] = 0;
+$handler->display->display_options['defaults']['style_options'] = FALSE;
+$handler->display->display_options['defaults']['row_plugin'] = FALSE;
+$handler->display->display_options['defaults']['row_options'] = FALSE;
+$handler->display->display_options['defaults']['fields'] = FALSE;
+/* Field: Content: Semester */
+$handler->display->display_options['fields']['classy_semester_id']['id'] = 'classy_semester_id';
+$handler->display->display_options['fields']['classy_semester_id']['table'] = 'field_data_classy_semester_id';
+$handler->display->display_options['fields']['classy_semester_id']['field'] = 'classy_semester_id';
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title_1']['id'] = 'title_1';
+$handler->display->display_options['fields']['title_1']['table'] = 'node';
+$handler->display->display_options['fields']['title_1']['field'] = 'title';
+$handler->display->display_options['fields']['title_1']['relationship'] = 'classy_course_id_target_id';
+$handler->display->display_options['fields']['title_1']['label'] = 'Course';
+$handler->display->display_options['fields']['title_1']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['external'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['title_1']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['title_1']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['title_1']['alter']['html'] = 0;
+$handler->display->display_options['fields']['title_1']['element_label_colon'] = 0;
+$handler->display->display_options['fields']['title_1']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['title_1']['hide_empty'] = 0;
+$handler->display->display_options['fields']['title_1']['empty_zero'] = 0;
+$handler->display->display_options['fields']['title_1']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['title_1']['link_to_node'] = 1;
+/* Field: Content: Time */
+$handler->display->display_options['fields']['classy_time_id']['id'] = 'classy_time_id';
+$handler->display->display_options['fields']['classy_time_id']['table'] = 'field_data_classy_time_id';
+$handler->display->display_options['fields']['classy_time_id']['field'] = 'classy_time_id';
+$handler->display->display_options['fields']['classy_time_id']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['external'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['alter']['html'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['hide_empty'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['empty_zero'] = 0;
+$handler->display->display_options['fields']['classy_time_id']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['classy_time_id']['field_api_classes'] = 0;
+/* Field: Content: Room */
+$handler->display->display_options['fields']['classy_room_id']['id'] = 'classy_room_id';
+$handler->display->display_options['fields']['classy_room_id']['table'] = 'field_data_classy_room_id';
+$handler->display->display_options['fields']['classy_room_id']['field'] = 'classy_room_id';
+$handler->display->display_options['fields']['classy_room_id']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['external'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['alter']['html'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['element_label_colon'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['hide_empty'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['empty_zero'] = 0;
+$handler->display->display_options['fields']['classy_room_id']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['classy_room_id']['settings'] = array(
+  'link' => 0,
+);
+$handler->display->display_options['fields']['classy_room_id']['field_api_classes'] = 0;
+/* Field: Content: Nid */
+$handler->display->display_options['fields']['nid']['id'] = 'nid';
+$handler->display->display_options['fields']['nid']['table'] = 'node';
+$handler->display->display_options['fields']['nid']['field'] = 'nid';
+$handler->display->display_options['fields']['nid']['label'] = 'Student List';
+$handler->display->display_options['fields']['nid']['alter']['alter_text'] = 1;
+$handler->display->display_options['fields']['nid']['alter']['text'] = 'View';
+$handler->display->display_options['fields']['nid']['alter']['make_link'] = 1;
+$handler->display->display_options['fields']['nid']['alter']['path'] = 'admin/classy/class/[nid]';
+$handler->display->display_options['fields']['nid']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['nid']['alter']['external'] = 0;
+$handler->display->display_options['fields']['nid']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['nid']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['nid']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['nid']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['nid']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['nid']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['nid']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['nid']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['nid']['alter']['html'] = 0;
+$handler->display->display_options['fields']['nid']['element_label_colon'] = 0;
+$handler->display->display_options['fields']['nid']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['nid']['hide_empty'] = 0;
+$handler->display->display_options['fields']['nid']['empty_zero'] = 0;
+$handler->display->display_options['fields']['nid']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['nid']['link_to_node'] = 0;
+$handler->display->display_options['defaults']['arguments'] = FALSE;
+/* Contextual filter: User: Uid */
+$handler->display->display_options['arguments']['uid']['id'] = 'uid';
+$handler->display->display_options['arguments']['uid']['table'] = 'users';
+$handler->display->display_options['arguments']['uid']['field'] = 'uid';
+$handler->display->display_options['arguments']['uid']['relationship'] = 'classy_teacher_id_target_id';
+$handler->display->display_options['arguments']['uid']['default_action'] = 'default';
+$handler->display->display_options['arguments']['uid']['default_argument_type'] = 'user';
+$handler->display->display_options['arguments']['uid']['default_argument_options']['user'] = FALSE;
+$handler->display->display_options['arguments']['uid']['default_argument_skip_url'] = 0;
+$handler->display->display_options['arguments']['uid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['uid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['uid']['summary_options']['items_per_page'] = '25';
+$handler->display->display_options['arguments']['uid']['specify_validation'] = 1;
+$handler->display->display_options['arguments']['uid']['validate']['type'] = 'user';
+$handler->display->display_options['arguments']['uid']['validate_options']['restrict_roles'] = 0;
+$handler->display->display_options['arguments']['uid']['break_phrase'] = 0;
+$handler->display->display_options['arguments']['uid']['not'] = 0;
+$handler->display->display_options['defaults']['filters'] = FALSE;
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'class' => 'class',
+);
+$handler->display->display_options['filters']['type']['group'] = 1;
+/* Filter criterion: Content: Year (classy_year_id) */
+$handler->display->display_options['filters']['classy_year_id_target_id']['id'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['table'] = 'field_data_classy_year_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['field'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_year_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['operator_id'] = 'classy_year_id_target_id_op';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['label'] = 'Year';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['operator'] = 'classy_year_id_target_id_op';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['identifier'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['reduce'] = 0;
+/* Filter criterion: Content: Semester (classy_semester_id) */
+$handler->display->display_options['filters']['classy_semester_id_target_id']['id'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['table'] = 'field_data_classy_semester_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['field'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_semester_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['operator_id'] = 'classy_semester_id_target_id_op';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['label'] = 'Semester';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['operator'] = 'classy_semester_id_target_id_op';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['identifier'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['reduce'] = 0;
+/* Filter criterion: Content: Time (classy_time_id) */
+$handler->display->display_options['filters']['classy_time_id_target_id']['id'] = 'classy_time_id_target_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['table'] = 'field_data_classy_time_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['field'] = 'classy_time_id_target_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_time_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['operator_id'] = 'classy_time_id_target_id_op';
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['label'] = 'Time ';
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['operator'] = 'classy_time_id_target_id_op';
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['identifier'] = 'classy_time_id_target_id';
+$handler->display->display_options['filters']['classy_time_id_target_id']['expose']['reduce'] = 0;
+$handler->display->display_options['path'] = 'admin/classy/instructor/%';
+$handler->display->display_options['menu']['type'] = 'tab';
+$handler->display->display_options['menu']['title'] = 'Teaching';
+$handler->display->display_options['menu']['weight'] = '0';
+$handler->display->display_options['menu']['context'] = 0;

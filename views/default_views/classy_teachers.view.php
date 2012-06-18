@@ -1,5 +1,4 @@
 <?php
-
 $view = new view;
 $view->name = 'teachers';
 $view->description = '';
@@ -21,6 +20,9 @@ $handler->display->display_options['query']['options']['query_comment'] = FALSE;
 $handler->display->display_options['exposed_form']['type'] = 'basic';
 $handler->display->display_options['pager']['type'] = 'full';
 $handler->display->display_options['pager']['options']['items_per_page'] = '10';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['pager']['options']['id'] = '0';
+$handler->display->display_options['pager']['options']['expose']['items_per_page_options_all'] = 0;
 $handler->display->display_options['style_plugin'] = 'table';
 /* Relationship: Entity Reference: Referencing entity */
 $handler->display->display_options['relationships']['reverse_classy_teacher_id_node']['id'] = 'reverse_classy_teacher_id_node';
@@ -28,6 +30,52 @@ $handler->display->display_options['relationships']['reverse_classy_teacher_id_n
 $handler->display->display_options['relationships']['reverse_classy_teacher_id_node']['field'] = 'reverse_classy_teacher_id_node';
 $handler->display->display_options['relationships']['reverse_classy_teacher_id_node']['label'] = 'Classes';
 $handler->display->display_options['relationships']['reverse_classy_teacher_id_node']['required'] = 0;
+/* Field: CiviCRM Contacts: Last Name */
+$handler->display->display_options['fields']['last_name']['id'] = 'last_name';
+$handler->display->display_options['fields']['last_name']['table'] = 'civicrm_contact';
+$handler->display->display_options['fields']['last_name']['field'] = 'last_name';
+$handler->display->display_options['fields']['last_name']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['external'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['last_name']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['last_name']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['last_name']['alter']['html'] = 0;
+$handler->display->display_options['fields']['last_name']['element_label_colon'] = 0;
+$handler->display->display_options['fields']['last_name']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['last_name']['hide_empty'] = 0;
+$handler->display->display_options['fields']['last_name']['empty_zero'] = 0;
+$handler->display->display_options['fields']['last_name']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['last_name']['link_to_civicrm_contact'] = 0;
+/* Field: CiviCRM Contacts: First Name */
+$handler->display->display_options['fields']['first_name']['id'] = 'first_name';
+$handler->display->display_options['fields']['first_name']['table'] = 'civicrm_contact';
+$handler->display->display_options['fields']['first_name']['field'] = 'first_name';
+$handler->display->display_options['fields']['first_name']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['external'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['first_name']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['first_name']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['first_name']['alter']['html'] = 0;
+$handler->display->display_options['fields']['first_name']['element_label_colon'] = 0;
+$handler->display->display_options['fields']['first_name']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['first_name']['hide_empty'] = 0;
+$handler->display->display_options['fields']['first_name']['empty_zero'] = 0;
+$handler->display->display_options['fields']['first_name']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['first_name']['link_to_civicrm_contact'] = 0;
 /* Field: User: Name */
 $handler->display->display_options['fields']['name']['id'] = 'name';
 $handler->display->display_options['fields']['name']['table'] = 'users';
@@ -76,6 +124,33 @@ $handler->display->display_options['fields']['mail']['element_default_classes'] 
 $handler->display->display_options['fields']['mail']['hide_empty'] = 0;
 $handler->display->display_options['fields']['mail']['empty_zero'] = 0;
 $handler->display->display_options['fields']['mail']['hide_alter_empty'] = 1;
+/* Field: CiviCRM Phone Details: Phone Number */
+$handler->display->display_options['fields']['phone']['id'] = 'phone';
+$handler->display->display_options['fields']['phone']['table'] = 'civicrm_phone';
+$handler->display->display_options['fields']['phone']['field'] = 'phone';
+$handler->display->display_options['fields']['phone']['label'] = 'Phone';
+$handler->display->display_options['fields']['phone']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['external'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['word_boundary'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['ellipsis'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['phone']['alter']['html'] = 0;
+$handler->display->display_options['fields']['phone']['element_label_colon'] = 0;
+$handler->display->display_options['fields']['phone']['element_default_classes'] = 0;
+$handler->display->display_options['fields']['phone']['hide_empty'] = 0;
+$handler->display->display_options['fields']['phone']['empty_zero'] = 0;
+$handler->display->display_options['fields']['phone']['hide_alter_empty'] = 0;
+$handler->display->display_options['fields']['phone']['location_type'] = '0';
+$handler->display->display_options['fields']['phone']['location_op'] = '0';
+$handler->display->display_options['fields']['phone']['is_primary'] = 1;
+$handler->display->display_options['fields']['phone']['phone_type'] = '0';
 /* Field: Content revision: Title */
 $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'node_revision';
@@ -116,19 +191,45 @@ $handler->display->display_options['filters']['rid']['field'] = 'rid';
 $handler->display->display_options['filters']['rid']['value'] = array(
   5 => '5',
 );
+$handler->display->display_options['filters']['rid']['group'] = 1;
 $handler->display->display_options['filters']['rid']['reduce_duplicates'] = 0;
-/* Filter criterion: User: Name */
-$handler->display->display_options['filters']['uid']['id'] = 'uid';
-$handler->display->display_options['filters']['uid']['table'] = 'users';
-$handler->display->display_options['filters']['uid']['field'] = 'uid';
-$handler->display->display_options['filters']['uid']['value'] = '';
-$handler->display->display_options['filters']['uid']['exposed'] = TRUE;
-$handler->display->display_options['filters']['uid']['expose']['operator_id'] = 'uid_op';
-$handler->display->display_options['filters']['uid']['expose']['label'] = 'Teacher';
-$handler->display->display_options['filters']['uid']['expose']['operator'] = 'uid_op';
-$handler->display->display_options['filters']['uid']['expose']['identifier'] = 'uid';
-$handler->display->display_options['filters']['uid']['expose']['multiple'] = FALSE;
-$handler->display->display_options['filters']['uid']['expose']['reduce'] = 0;
+/* Filter criterion: Content: Semester (classy_semester_id) */
+$handler->display->display_options['filters']['classy_semester_id_target_id']['id'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['table'] = 'field_data_classy_semester_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['field'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['relationship'] = 'reverse_classy_teacher_id_node';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_semester_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['operator_id'] = 'classy_semester_id_target_id_op';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['label'] = 'Semester';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['operator'] = 'classy_semester_id_target_id_op';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['identifier'] = 'classy_semester_id_target_id';
+$handler->display->display_options['filters']['classy_semester_id_target_id']['expose']['reduce'] = 0;
+/* Filter criterion: Content: Year (classy_year_id) */
+$handler->display->display_options['filters']['classy_year_id_target_id']['id'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['table'] = 'field_data_classy_year_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['field'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['relationship'] = 'reverse_classy_teacher_id_node';
+$handler->display->display_options['filters']['classy_year_id_target_id']['group'] = 1;
+$handler->display->display_options['filters']['classy_year_id_target_id']['exposed'] = TRUE;
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['operator_id'] = 'classy_year_id_target_id_op';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['label'] = 'Year';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['operator'] = 'classy_year_id_target_id_op';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['identifier'] = 'classy_year_id_target_id';
+$handler->display->display_options['filters']['classy_year_id_target_id']['expose']['reduce'] = 0;
+/* Filter criterion: CiviCRM Contacts: Last Name */
+$handler->display->display_options['filters']['last_name']['id'] = 'last_name';
+$handler->display->display_options['filters']['last_name']['table'] = 'civicrm_contact';
+$handler->display->display_options['filters']['last_name']['field'] = 'last_name';
+$handler->display->display_options['filters']['last_name']['operator'] = 'contains';
+$handler->display->display_options['filters']['last_name']['group'] = 1;
+$handler->display->display_options['filters']['last_name']['exposed'] = TRUE;
+$handler->display->display_options['filters']['last_name']['expose']['operator_id'] = 'last_name_op';
+$handler->display->display_options['filters']['last_name']['expose']['label'] = 'Last Name';
+$handler->display->display_options['filters']['last_name']['expose']['operator'] = 'last_name_op';
+$handler->display->display_options['filters']['last_name']['expose']['identifier'] = 'last_name';
+$handler->display->display_options['filters']['last_name']['expose']['required'] = 0;
+$handler->display->display_options['filters']['last_name']['expose']['multiple'] = FALSE;
 
 /* Display: Teachers */
 $handler = $view->new_display('page', 'Teachers', 'page');
@@ -137,3 +238,54 @@ $handler->display->display_options['menu']['type'] = 'tab';
 $handler->display->display_options['menu']['title'] = 'Teachers';
 $handler->display->display_options['menu']['weight'] = '0';
 $handler->display->display_options['menu']['context'] = 0;
+
+/* Display: Entity Reference View Widget */
+$handler = $view->new_display('entityreference_view_widget', 'Entity Reference View Widget', 'entityreference_view_widget_1');
+$handler->display->display_options['defaults']['title'] = FALSE;
+$handler->display->display_options['defaults']['group_by'] = FALSE;
+$handler->display->display_options['defaults']['query'] = FALSE;
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['query']['options']['distinct'] = TRUE;
+$handler->display->display_options['query']['options']['query_comment'] = FALSE;
+$handler->display->display_options['defaults']['exposed_form'] = FALSE;
+$handler->display->display_options['exposed_form']['type'] = 'entityreference_view_widget';
+$handler->display->display_options['defaults']['pager'] = FALSE;
+$handler->display->display_options['pager']['type'] = 'none';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['defaults']['style_plugin'] = FALSE;
+$handler->display->display_options['style_plugin'] = 'grid';
+$handler->display->display_options['style_options']['columns'] = '3';
+$handler->display->display_options['style_options']['fill_single_line'] = 1;
+$handler->display->display_options['defaults']['style_options'] = FALSE;
+$handler->display->display_options['defaults']['row_plugin'] = FALSE;
+$handler->display->display_options['row_plugin'] = 'entity';
+$handler->display->display_options['row_options']['view_mode'] = 'entityreference_view_widget';
+$handler->display->display_options['defaults']['row_options'] = FALSE;
+$handler->display->display_options['defaults']['fields'] = FALSE;
+/* Field: User: Name */
+$handler->display->display_options['fields']['name']['id'] = 'name';
+$handler->display->display_options['fields']['name']['table'] = 'users';
+$handler->display->display_options['fields']['name']['field'] = 'name';
+$handler->display->display_options['fields']['name']['label'] = '';
+$handler->display->display_options['fields']['name']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['name']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['name']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['name']['alter']['external'] = 0;
+$handler->display->display_options['fields']['name']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['name']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['name']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['name']['alter']['word_boundary'] = 0;
+$handler->display->display_options['fields']['name']['alter']['ellipsis'] = 0;
+$handler->display->display_options['fields']['name']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['name']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['name']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['name']['alter']['html'] = 0;
+$handler->display->display_options['fields']['name']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['name']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['name']['hide_empty'] = 0;
+$handler->display->display_options['fields']['name']['empty_zero'] = 0;
+$handler->display->display_options['fields']['name']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['name']['link_to_user'] = 0;
+$handler->display->display_options['fields']['name']['overwrite_anonymous'] = 0;
+$handler->display->display_options['fields']['name']['format_username'] = 1;
+$handler->display->display_options['hide_left'] = 0;

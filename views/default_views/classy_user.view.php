@@ -1,5 +1,4 @@
 <?php
-
 $view = new view;
 $view->name = 'student_enrollment';
 $view->description = '';
@@ -24,6 +23,14 @@ $handler->display->display_options['exposed_form']['type'] = 'basic';
 $handler->display->display_options['pager']['type'] = 'full';
 $handler->display->display_options['pager']['options']['items_per_page'] = '10';
 $handler->display->display_options['style_plugin'] = 'table';
+/* No results behavior: Global: Text area */
+$handler->display->display_options['empty']['area']['id'] = 'area';
+$handler->display->display_options['empty']['area']['table'] = 'views';
+$handler->display->display_options['empty']['area']['field'] = 'area';
+$handler->display->display_options['empty']['area']['empty'] = FALSE;
+$handler->display->display_options['empty']['area']['content'] = 'You are not enrolled in any classes.';
+$handler->display->display_options['empty']['area']['format'] = 'plain_text';
+$handler->display->display_options['empty']['area']['tokenize'] = 0;
 /* Relationship: Classy: Class Reference */
 $handler->display->display_options['relationships']['class_id']['id'] = 'class_id';
 $handler->display->display_options['relationships']['class_id']['table'] = 'classy_grades';
@@ -148,39 +155,27 @@ $handler->display->display_options['fields']['classy_time_id']['field_api_classe
 $handler->display->display_options['fields']['grade']['id'] = 'grade';
 $handler->display->display_options['fields']['grade']['table'] = 'classy_grades';
 $handler->display->display_options['fields']['grade']['field'] = 'grade';
-/* Filter criterion: User: Current */
-$handler->display->display_options['filters']['uid_current']['id'] = 'uid_current';
-$handler->display->display_options['filters']['uid_current']['table'] = 'users';
-$handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';
-$handler->display->display_options['filters']['uid_current']['relationship'] = 'student_id';
-$handler->display->display_options['filters']['uid_current']['value'] = '1';
+/* Contextual filter: User: Uid */
+$handler->display->display_options['arguments']['uid']['id'] = 'uid';
+$handler->display->display_options['arguments']['uid']['table'] = 'users';
+$handler->display->display_options['arguments']['uid']['field'] = 'uid';
+$handler->display->display_options['arguments']['uid']['relationship'] = 'student_id';
+$handler->display->display_options['arguments']['uid']['default_action'] = 'default';
+$handler->display->display_options['arguments']['uid']['default_argument_type'] = 'user';
+$handler->display->display_options['arguments']['uid']['default_argument_options']['user'] = FALSE;
+$handler->display->display_options['arguments']['uid']['default_argument_skip_url'] = 0;
+$handler->display->display_options['arguments']['uid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['uid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['uid']['summary_options']['items_per_page'] = '25';
+$handler->display->display_options['arguments']['uid']['specify_validation'] = 1;
+$handler->display->display_options['arguments']['uid']['validate']['type'] = 'user';
+$handler->display->display_options['arguments']['uid']['validate_options']['restrict_roles'] = 0;
+$handler->display->display_options['arguments']['uid']['break_phrase'] = 0;
+$handler->display->display_options['arguments']['uid']['not'] = 0;
 
 /* Display: User Page */
 $handler = $view->new_display('page', 'User Page', 'user');
-$handler->display->display_options['path'] = 'my-classes';
-$handler->display->display_options['menu']['type'] = 'tab';
-$handler->display->display_options['menu']['title'] = 'Classes';
-$handler->display->display_options['menu']['weight'] = '0';
-$handler->display->display_options['menu']['name'] = 'user-menu';
-$handler->display->display_options['menu']['context'] = 0;
-$handler->display->display_options['fields']['classy_time_id']['alter']['html'] = 0;
-$handler->display->display_options['fields']['classy_time_id']['element_label_colon'] = 1;
-$handler->display->display_options['fields']['classy_time_id']['element_default_classes'] = 1;
-$handler->display->display_options['fields']['classy_time_id']['hide_empty'] = 0;
-$handler->display->display_options['fields']['classy_time_id']['empty_zero'] = 0;
-$handler->display->display_options['fields']['classy_time_id']['hide_alter_empty'] = 1;
-$handler->display->display_options['fields']['classy_time_id']['settings'] = array(
-  'link' => 0,
-);
-$handler->display->display_options['fields']['classy_time_id']['field_api_classes'] = 0;
-/* Field: Classy: Grade */
-$handler->display->display_options['fields']['grade']['id'] = 'grade';
-$handler->display->display_options['fields']['grade']['table'] = 'classy_grades';
-$handler->display->display_options['fields']['grade']['field'] = 'grade';
-
-/* Display: User Page */
-$handler = $view->new_display('page', 'User Page', 'user');
-$handler->display->display_options['path'] = 'my-classes';
+$handler->display->display_options['path'] = 'admin/classy/student/%';
 $handler->display->display_options['menu']['type'] = 'tab';
 $handler->display->display_options['menu']['title'] = 'Classes';
 $handler->display->display_options['menu']['weight'] = '0';
