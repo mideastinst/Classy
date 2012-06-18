@@ -35,21 +35,94 @@ function classy_sessions_menu() {
   return $items;
 }
 
-function classy_sessions_admin() {
-  global $base_url;
-  $output = array(
-    '#prefix' => '<div class="left clearfix"><div class="admin-panel"><h3>' . t('Payments') . '</h3><div class="body">',
-    'group' => array(
-      '#type' => 'markup',
-      '#markup' => l(t('Student Payments'), $base_url . '/admin/classy/tutoring/payments' ),
-    ),
-    '#suffix' => '</div></div></div>',
+
+/**
+ * Implementation of hook_block_info()
+ */
+
+function classy_sessions_block_info() {
+  $blocks = array();
+  $blocks['sessions'] = array(
+    'info' => t('Session Credits'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
   );
+  return $blocks;
+}
+
+
+/**
+ * Implementation of hook_block_view();
+ */
+ 
+function classy_sessions_block_view($delta) {
+  if ($delta == 'sessions') {
+    $block_vars = array();
+    
+    global $base_url;
   
-  //create and add a view here? 
+    //get the session civicrm type
+    $types = variable_get('classy_civicrm_type');
+    $session_type_id = $types['session'];
+    
+    //get the list of users with available session credits
+    // probably going to need to make a template to have this look pretty - basic table?
+    
+    //get available credits all users
+    $query = db_select('classy_civicrm_credits', 'c');
+    $query
+      ->fields('c', array('drupal_uid', 'civi_contact_id'))
+      ->condition('civi_contribution_type_id', $session_type_id, '=')
+      ->condition('paid', 1, '=')
+      ->condition('used', 0, '=')
+      ->groupBy('drupal_uid');
+    $query->addExpression('COUNT(drupal_uid)');  
+    $result = $query->execute()->fetchAll();
+    foreach ($result as $student) {
+      //get the user name and link @todo, eventually, this should probably come from civi
+      $user = user_load($student->drupal_uid);
+      $block_vars[] = array('id'=>$user->uid, 'name'=>$user->name, 'available'=>$student->expression);
+    }
+    
+    //v2 WIP
+    /*$header = array('data'=>'Session Credits',
+                    'field'=>'
+    
+    $rows = array();
+    foreach ($result as $student) {
+      $rows = array($user->uid, $user->name, $student->expression);
+    }*/
+    
+    
+    $content = theme('classy_session_credits', array('args'=>$block_vars));
+    $block = array(
+      'subject' => 'Unscheduled Session Vouchers',
+      'content' => $content,
+    );
+    return $block;
+  }
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+
+function classy_sessions_theme() {
+  return array(
+    'classy_session_credits' => array(
+      'variables' => array($args = NULL),
+      'template' => 'classy-sessions-credits',
+    ),
+  ); 
+}
+
+
+function classy_sessions_admin() {
+  //add the block 
   
-  
-  return drupal_render($output);
+  $block = block_load('classy_sessions', 'sessions');
+  $output = drupal_render(_block_get_renderable_array(_block_render_blocks(array($block))));
+ 
+  return $output;
 }
 
 function classy_sessions_user_sessions() {
@@ -203,27 +276,24 @@ function classy_sessions_civicrm_post( $op, $objectName, $objectId, &$objectRef 
       }
       if ($type == $session_type_id){
         //create an initial session, just so the admins know they need to schedule one
-        //$c = 0;
-        //while ($c < (int)$objectRef['qty']) {
-        
-          $node = new stdClass();
-          $node->title = "Unscheduled Session for " . $user->name;
-          $node->type = "session";
-          $node->language = LANGUAGE_NONE; // Or e.g. 'en' if locale is enabled
-          $node->uid = $user->uid; 
-          $node->status = 0; //(1 or 0): published or not
-          $node->promote = 0; //(1 or 0): promoted to front page
-          $node->comment = 1; //2 = comments on, 1 = comments off
-          
-          // Entity reference field
-          $node->field_student[$node->language][]['target_id'] = $user->uid;
-          $node->field_student[$node->language][]['target_type'] = 'user'; 
 
-          $node = node_submit($node); // Prepare node for saving
-          node_save($node);
-          drupal_set_message( "Session with id " . $node->nid . " created!\n");
-         // $c++;
-        //}
+        $node = new stdClass();
+        $node->title = "Unscheduled Session for " . $user->name;
+        $node->type = "session";
+        $node->language = LANGUAGE_NONE; // Or e.g. 'en' if locale is enabled
+        $node->uid = $user->uid; 
+        $node->status = 0; //(1 or 0): published or not
+        $node->promote = 0; //(1 or 0): promoted to front page
+        $node->comment = 1; //2 = comments on, 1 = comments off
+        
+        // Entity reference field
+        $node->field_student[$node->language][]['target_id'] = $user->uid;
+        $node->field_student[$node->language][]['target_type'] = 'user'; 
+
+        $node = node_submit($node); // Prepare node for saving
+        node_save($node);
+        drupal_set_message( "Session with id " . $node->nid . " created!\n");
+
       }
     }  
   

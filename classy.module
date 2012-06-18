@@ -41,7 +41,6 @@ function classy_menu() {
   $items['admin/classy'] = array(
     'title' => 'ClassySIS',
     'description' => 'Class Registration System.',
-    //'page callback' => 'system_admin_menu_block_page',
     'page callback' => 'classy_dashboard',
     'access arguments' => array('access administration pages'),
     'file path' => drupal_get_path('module', 'system'),
@@ -52,7 +51,6 @@ function classy_menu() {
     'title' => 'ClassySIS',
     'description' => 'Administer the Class Registration System.',
     'page callback' => 'system_admin_menu_block_page',
-    //'page callback' => 'classy_admin_dashboard',
     'access arguments' => array('access administration pages'),
     'file path' => drupal_get_path('module', 'system'),
     'file' => 'system.admin.inc',
@@ -73,9 +71,8 @@ function classy_menu() {
     'title' => t('Enter Grade'), 
     'page callback' => 'drupal_get_form', 
     'page arguments' => array('classy_user_grade'),
-    //'file path' => drupal_get_path('module', 'classy') . 'includes/',    
     'file' => 'includes/classy.user_grade.inc',
-    'access arguments' => TRUE, 
+    'access arguments' => array('access administration pages'), 
     'type' => MENU_NORMAL_ITEM, 
   ); 
   
@@ -92,50 +89,23 @@ function classy_menu() {
     'title' => t('Teaching'),
     'page arguments' => array(1),
     'page callback' => 'classy_teacher_classes',
-    'access callback' => TRUE,
+    'access callback' => 'user_access',
+    'access arguments' => array('access administration pages'),
     'type' => MENU_LOCAL_TASK,
   );
   
   return $items;
 }
 
-
+/**
+ * Page Callbacks
+ */
 
 
 function classy_dashboard(){
   $dashboard = "Please select an option from the available tabs";
   
   return $dashboard;
-}
-
-
-/**
- * Custom callback that builds our content and returns it to the browser. @todo replace with view
- *
- * @return
- *   a build array
- *
- */
-function classy_page() {
-  $build = array();
-  $sql = 'SELECT nid FROM {node} n WHERE n.type = :type AND n.status = :status';
-  $result = db_query($sql,
-    array(
-      ':type' => 'class',
-      ':status' => 1,
-    )
-  );
-
-  // Loop through each of our classy nodes and instruct node_view
-  // to use our custom "example_node_list" view.
-  // http://api.drupal.org/api/function/node_load/7
-  // http://api.drupal.org/api/function/node_view/7
-  foreach ($result as $row) {
-    $node = node_load($row->nid);
-    $build['node_list'][]= node_view($node, 'classy_list');
-  }
-
-  return $build;
 }
 
 function classy_user_grades() {
@@ -175,27 +145,6 @@ function classy_field_formatter_info() {
     ),
   );
 }
-
-/**
- * Implements hook_field_formatter_view().
- *
- * @todo: We need to provide a formatter for the colors that a user is allowed to enter
- * during node creation.
- */
-/*function classy_field_formatter_view($object_type, $object, $field, $instance, $langcode, $items, $display) {
-  $element = array();
-  switch ($display['type']) {
-    case 'classy_colors':
-      foreach ($items as $delta => $item) {
-        $element[$delta]['#type'] = 'markup';
-        $color = $item['safe_value'];
-        $element[$delta]['#markup'] = theme('classy_color', array('color' => $color));
-      }
-      break;
-  }
-
-  return $element;
-}*/
 
 
 /**
@@ -241,13 +190,6 @@ function classy_preprocess_node(&$vars) {
         
         //add view displaying list of current classes
         $block = module_invoke('views', 'block_view', 'classes-by_course');
-        //$view = views_get_view('classes');
-        //$view->set_display('by_course');
-        
-        //$view = views_embed_view('classes', $display_id = 'by_course');
-
-        
-        
         $vars['class_list'] = $block['content'];
         
         break;      
@@ -260,16 +202,6 @@ function classy_preprocess_node(&$vars) {
           ->groupBy('class_id');
         $result = $query->execute()->fetchAll();
 
-        /*foreach ($result as $class) { //update class node to reflect enrollment
-          $table = 'field_data_classy_enrolled';
-          
-          $record = array(
-            'id' => $class['entity_id'],
-            //'classy_enrolled_value' => ,
-          );  
-          //drupal_write_record($table, $record, 'id');
-        }   */  
-        
         //Load related course information
         //@todo - should this be a block, rather than dropped here?  that gives the option to place it using context.
         //check to see if already enrolled - if so give 'unenroll' form
@@ -353,16 +285,22 @@ function classy_form_alter(&$form, &$form_state, $form_id) {
 }
 
 function classy_enrollment_enroll($form, &$form_state) {   
-  //make sure not already enrolled or withdrawn
   global $user;
   $uid = $user->uid;
+
   //check for old record
   $query = db_select('classy_enrollment', 'e');
   $query
     ->fields('e')
     ->condition('student_id', $uid,'=')
-    ->condition('class_id', $form['nid']['#value'],'=');
+    ->condition('class_id', $form['nid']['#value'],'=');  //@todo pretty sure this should get moved to form_state
   $result = $query->execute()->fetchAssoc();
+  
+  //load the class node to modify enrollment count
+  $node = node_load($form_state['values']['nid']);
+  if (!isset($node->classy_enrolled[$node->language][0]['value'])) {
+     $node->classy_enrolled[$node->language][0]['value'] = "0";
+  }
   
   if ($form['#form_id'] == 'classy_withdraw') {
     
@@ -380,6 +318,7 @@ function classy_enrollment_enroll($form, &$form_state) {
       ->condition('class_id', $form['nid']['#value'],'=');
     $result = $query->execute();
     
+    $node->classy_enrolled[$node->language][0]['value']--;
     drupal_set_message(t('You are no longer enrolled.'));
     
   } elseif ($form['#form_id'] == 'classy_enroll'  && $result) {  //re-enrolling
@@ -399,7 +338,7 @@ function classy_enrollment_enroll($form, &$form_state) {
       'class_id' => $form['nid']['#value'],
     );
     drupal_write_record($table, $record);
-    
+    $node->classy_enrolled[$node->language][0]['value']++;
     drupal_set_message(t('You are now enrolled again.'));
   } else {  
     //add record to grades table  
@@ -418,47 +357,20 @@ function classy_enrollment_enroll($form, &$form_state) {
       'state' => 1,
     );
     drupal_write_record($table, $record);
+    $node->classy_enrolled[$node->language][0]['value']++;
     drupal_set_message(t('You are now enrolled.'));
-  } 
+  }
+  
+  //update the node's enrollment count   
+  node_save($node);
+  
 }
-
-
-
-
 
 function classy_enrollment_validate($form, &$form_state) {
   if ($form_state['values']['enroll']['user'] == '') {
     form_set_error('', t('You must have a user name.'));
   }
 }
-
-
-
-/**
- * Implementation of hook_cron
- *
- * Updates counts for enrolled students when cron runs.
- */
-/*function classy_cron() {
-  //count enrollment for each current class
-  
-  $query = db_select('classy_enrollment', 'e'); //currently getting all classes
-  $query
-    ->fields('e', array('class_id'))
-  $result = $query->execute()->fetchAssoc();
-  foreach ($result as $class) { //update class node to reflect enrollment
-    $table = 'field_data_classy_enrolled';
-    
-    $record = array(
-      'id' => $class['entity_id'],
-      'classy_enrolled_value' => ,
-    );  
-    //drupal_write_record($table, $record, 'id');
-    
-    
-  }
-}  */
-  
 
 
 

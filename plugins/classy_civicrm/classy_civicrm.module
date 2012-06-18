@@ -107,9 +107,6 @@ function classy_civicrm_theme() {
   ); 
 }
 
-
-
-
 /** 
  * Aggregates all calls to the CiviCRM API
  */
