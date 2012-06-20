@@ -109,7 +109,7 @@ function classy_dashboard(){
 }
 
 function classy_user_grades() {
-  $view = views_embed_view('student_enrollment', 'user');
+  $view = views_embed_view('students', 'user');
   return $view; 
 }
 

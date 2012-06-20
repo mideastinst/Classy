@@ -448,6 +448,17 @@ function classy_civicrm_config_helper($form, &$form_state) {
 }
 
 
+/**
+ * Implementation of hook_user_login()
+ */
+
+function classy_civicrm_user_login(&$edit, $account) {
+  //initialize the voucher block
+  classy_civicrm_credit_check_display(TRUE);  
+
+}
+
+
 function classy_civicrm_credit_check_display($reset = NULL) {
   $available = array();  
 
