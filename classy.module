@@ -94,6 +94,18 @@ function classy_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   
+  $items['admin/classy/students/enroll'] = array( 
+    'title' => t('Enroll or Remove student'), 
+    'page callback' => 'drupal_get_form', 
+    'page arguments' => array('classy_enroll_user'),
+    'file' => 'includes/classy.enroll_user.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array('access administration pages'), 
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+  
+
   return $items;
 }
 
@@ -153,16 +165,15 @@ function classy_field_formatter_info() {
  * Validation criteria have 3 levels - annonymous, authenticated (can't sign up) and authorized - array
  *
  */
-function classy_approval_criteria($type, $nid, $uid) {
+function classy_approval_criteria($type, $nid, $uid = NULL) {
 
-  global $user;
   $criteria = array();
   
   //user must be logged in
-  if ($user->uid) {
+  if ($uid) {
     $criteria[] = array('type'=>'logged_in', 'pass'=>TRUE);  
   } else {
-    $criteria[] = array('type'=>'logged_in', 'pass'=>FALSE, 'target'=>'/user', 'text' => 'Please Log In',);
+    $criteria[] = array('type'=>'logged_in', 'pass'=>FALSE, 'target'=>'/user', 'text' => 'Log In or Create Account to Enroll',);
   }
   //get all criteria from other modules
   $external_criteria = module_invoke_all('approval_criterion', $type, $nid, $uid);
@@ -187,7 +198,6 @@ function classy_preprocess_node(&$vars) {
   if (isset($vars['type'])) {
     switch ($vars['type']) {
       case 'course':
-        
         //add view displaying list of current classes
         $block = module_invoke('views', 'block_view', 'classes-by_course');
         $vars['class_list'] = $block['content'];
@@ -218,13 +228,14 @@ function classy_preprocess_node(&$vars) {
           $vars['registration'] = classy_enrollment($user->uid, $vars['nid']);
         } else {
           //send course info to approval criteria?  - is the user already signed up?
-          $criteria = classy_approval_criteria($vars['type'], $vars['nid'], $user->uid);
           
+          $uid = ($user->uid == 0 ? NULL : $user->uid);
+          //$criteria = classy_approval_criteria($vars['type'], $vars['nid'], $uid);
+          $criteria = classy_approval_criteria($vars['classy_course_id']['0']['entity']->type, $vars['nid'], $uid);
           foreach ($criteria as $criterion) {
             //$criterion['pass'] = TRUE; //debug
             if ($criterion['pass'] == FALSE) {
-              //$vars['registration']['text'] = $criterion['text'];
-              //$vars['registration']['target'] = $base_url . $criterion['target'];
+
               $vars['registration'] = array(
                 'register' => array(
                   '#markup' => l(t($criterion['text']), $base_url . $criterion['target'], array ('alt'=>'Register') ),
@@ -279,9 +290,12 @@ function classy_form_alter(&$form, &$form_state, $form_id) {
   if (in_array($form_id, $enroll_forms)){
     $form['#submit'][] = 'classy_enrollment_enroll';
   }  
-
+ 
   //add signup role - add 'enrolled' role once signed up
-  
+
+  if ($form_id == 'classy_enroll_user') {
+    $form['#submit'][] = 'classy_enrollment_user';
+  }
 }
 
 function classy_enrollment_enroll($form, &$form_state) {   
@@ -372,5 +386,77 @@ function classy_enrollment_validate($form, &$form_state) {
   }
 }
 
+function classy_enroll_user_validate($form, &$form_state) {
+  // check to see if this is a user or not
+  
+  
+  
+  // check to see if it's a class
+  
+  // this should just be replaced with an autocomplete field on the form
+}
 
+function classy_enrollment_user($form, &$form_state) {
+  //@todo this is about the worst short time hack I've done in a while - go fix the freaking code above!  form needs to take 2 arguments
+  $uid = $form_state['values']['enroll_user']['user'];
+  $nid = $form_state['values']['enroll_user']['class'];
+
+  //check for old record
+  $query = db_select('classy_enrollment', 'e');
+  $query
+    ->fields('e')
+    ->condition('student_id', $uid,'=')
+    ->condition('class_id', $nid,'=');  
+  $result = $query->execute()->fetchAssoc();
+  
+  //load the class node to modify enrollment count
+  $node = node_load($nid);
+  if (!isset($node->classy_enrolled[$node->language][0]['value'])) {
+     $node->classy_enrolled[$node->language][0]['value'] = "0";
+  }
+  
+  if ($form_state['values']['state'] == 1) {
+    
+    $table = 'classy_enrollment';
+    $enroll_id = $result['id'];
+    $record = array(
+      'id' => $enroll_id,
+      'state' => 2,
+    );  
+    drupal_write_record($table, $record, 'id');
+    
+    $query = db_delete('classy_grades');
+    $query
+      ->condition('student_id', $uid,'=')
+      ->condition('class_id', $nid,'=');
+    $result = $query->execute();
+    
+    $node->classy_enrolled[$node->language][0]['value']--;
+    drupal_set_message(t('The student has been removed'));
+    
+  } else {  
+    //add record to grades table  
+    $table = 'classy_grades';
+    $record = array(
+      'student_id' => $uid,
+      'class_id' => $nid,
+    );
+    drupal_write_record($table, $record);
+    
+    //add record to classes table
+    $table = 'classy_enrollment';
+    $record = array(
+      'student_id' => $uid,
+      'class_id' => $nid,
+      'state' => 1,
+    );
+    drupal_write_record($table, $record);
+    $node->classy_enrolled[$node->language][0]['value']++;
+    drupal_set_message(t('The student is now enrolled.'));
+  }
+  
+  //update the node's enrollment count   
+  node_save($node);
+
+}
 

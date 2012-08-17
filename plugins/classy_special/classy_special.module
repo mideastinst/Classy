@@ -1,0 +1,52 @@
+<?php
+/**
+ * @file
+ * Code for the Classy Special feature.
+ */
+
+include_once 'classy_special.features.inc';
+
+
+/** 
+ * Implementation of hook_preprocess_node
+ */
+
+function classy_special_preprocess_node(&$vars) {
+
+  global $user;
+  global $base_url;
+  //global $language;
+  if (isset($vars['type'])) {
+    switch ($vars['type']) {
+      case 'special': 
+        //add view displaying list of current classes
+        $block = module_invoke('views', 'block_view', 'classes-by_course');
+        $vars['class_list'] = $block['content'];
+        
+        break;  
+      default:
+	      break;
+    }
+  }
+}
+
+
+
+/** 
+ * Implementation of hook_form_alter
+ */
+function classy_special_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#form_id'] == 'classy_civicrm_config') {
+    $types = variable_get('classy_civicrm_type', array());
+    $form['classy_civicrm_type']['special'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Special Class Type'),
+      '#default_value' => $types['special'],
+      '#size' => 2,
+      '#maxlength' => 2,
+      '#description' => t("The CiviCRM Contribution Type ID for special classes."),
+      '#required' => TRUE,
+    );
+   
+  }
+}

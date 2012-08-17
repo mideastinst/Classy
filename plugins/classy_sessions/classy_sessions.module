@@ -24,6 +24,14 @@ function classy_sessions_menu() {
     'weight' => 50,
   );
   
+  $items['admin/classy/tutoring/unscheduled'] = array(
+    'title' => 'Unscheduled',
+    'page callback' => 'classy_sessions_admin',
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  
   $items['user/%user/sessions'] = array(
     'title' => t('My Sessions'),
     'page arguments' => array(1),
@@ -75,7 +83,7 @@ function classy_sessions_block_view($delta) {
       ->condition('paid', 1, '=')
       ->condition('used', 0, '=')
       ->groupBy('drupal_uid');
-    $query->addExpression('COUNT(drupal_uid)');  
+    $query->addExpression('COUNT(drupal_uid)');
     $result = $query->execute()->fetchAll();
     foreach ($result as $student) {
       //get the user name and link @todo, eventually, this should probably come from civi

@@ -34,15 +34,6 @@ function classy_civicrm_config() {
     '#description' => t("The CiviCRM Contribution Type ID for regular classes."),
     '#required' => TRUE,
   );
-  $form['classy_civicrm_type']['special'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Special Class Type'),
-    '#default_value' => $types['special'],
-    '#size' => 2,
-    '#maxlength' => 2,
-    '#description' => t("The CiviCRM Contribution Type ID for special classes."),
-    '#required' => TRUE,
-  );
 
   return system_settings_form($form);
 }
@@ -313,15 +304,18 @@ function classy_civicrm_contribution_credits($civiuser, $contribution_id = NULL)
  
 function classy_civicrm_approval_criterion($type, $nid, $uid) {
 
-  //added criteria - entry in 'credits' table   ---contribution type is different from contribution page
-  if ($type == 'class') {
-    $contrib_type = '5';
-    $contrib_page = '4';
-  } else { //tutoring
-    $contrib_type = '6';
-    $contrib_page = '3';
+  //get contribution page info
+  $contribution_type_id = variable_get('classy_civicrm_type');
+  $contribution_type_info = variable_get('classy_civicrm_type_info');
+  
+  //@todo bad naming convention needs shift
+  if ($type == 'course') {
+    $type = 'regular';
   }
   
+  $contrib_type = $contribution_type_id[$type];
+  $contrib_page = $contribution_type_info[$contrib_type]['contribution_page'];
+      
   //get the current node - checking against this overriding 'withdraw'
   $query = db_select('classy_enrollment', 'e');
   $query
@@ -350,12 +344,12 @@ function classy_civicrm_approval_criterion($type, $nid, $uid) {
     if ($credit == TRUE) {
       $criterion = array('type' => 'has_credit', 'pass' => TRUE);
     } else {
-      $criterion = array('type' => 'has_credit', 'pass' => FALSE, 'target' => '/civicrm/contribute/transact?reset=1&id=' . $contrib_page, 'text'=> '.');
+      $criterion = array('type' => 'has_credit', 'pass' => FALSE, 'target' => '/civicrm/contribute/transact?reset=1&id=' . $contrib_page, 'text'=> 'Purchase a Voucher to Enroll');
     }
   
   }
   return $criterion;
-  
+
 }
 
 /** 
@@ -443,9 +437,12 @@ function classy_civicrm_config_helper($form, &$form_state) {
     }
 
   }
+
   variable_set('classy_civicrm_type_info', $types);
 
 }
+
+//@todo post a huge warning that you MUST set the contribution types immediately.
 
 
 /**

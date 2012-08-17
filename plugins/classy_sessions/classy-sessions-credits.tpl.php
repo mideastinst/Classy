@@ -1,7 +1,6 @@
 <div class="left clearfix">
   
   <div class="admin-panel">
-    <h3><?php //print $subject; ?></h3>
     <div class="body">
       <table>
         <th><?php print t('Name'); ?></th>
